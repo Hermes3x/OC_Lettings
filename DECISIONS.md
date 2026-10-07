@@ -21,6 +21,8 @@
 - installer un deuxième Python, temporairement ;
 - l'interface de l'admin change d'apparence entre Django 3.0 et 5.2. C'est un arbitrage entre deux exigences : un admin inchangé, et un site sûr en production. La sécurité prime sur les habitudes et le confort. Les fonctionnalités de l'admin, elles, doivent rester identiques : à vérifier en comparant avec la version de référence.
 
+**Vérifié** (2026-10-07, après la modernisation) : le site semble identique à mes captures de référence. Dans l'admin, tout fonctionne ; seule différence constatée, le thème sombre est désormais pris en compte. « Addresss » est toujours là : rien n'a été corrigé pendant la modernisation. 5 utilisateurs avant et après la migration `auth 0012`. flake8 : 17 erreurs au lieu de 18 (une règle assouplie dans la version récente). pytest : `1 passed`, comme dans la référence.
+
 ## 2026-10-06 — Langue du projet
 
 **La question** : en quelle langue écrire le code, les noms et les messages de commit ? Un projet qui mélange les langues au hasard est difficile à lire et à défendre.
