@@ -17,7 +17,7 @@
 |---|---|
 | **Demandé** | Pourquoi `runserver` plante après un `pip install` réussi, sous Python 3.14 |
 | **Produit** | Diagnostic : Django 3.0 importe `distutils` (retiré de Python 3.12) et `cgi` (retiré de 3.13). Deux options chiffrées : reproduire l'environnement d'origine, ou moderniser |
-| **Retenu** | _à remplir_ |
+| **Retenu** | Option c :  reproduire l'environnement d'origine afin d'obtenir l'état et le fonctionnement de référence puis moderniser |
 | **Vérifié** | Vérifications avant lancement de la modernisation : 6 adresses, 6 locations, 4 profils. Le site et l'admin tournent, flake8 donne 18 erreurs, pytest donne 1 passed. Captures d'écran réalisées. |
 
 ---
@@ -28,7 +28,7 @@
 |---|---|
 | **Demandé** | Pourquoi `pytest` plante sur `No module named 'six'` alors que le `requirements.txt` est installé tel quel |
 | **Produit** | Diagnostic : `pytest` n'est pas épinglé, pip installe la 8.3.5 ; `pytest-django` 3.9 utilisait `six` sans le déclarer, l'ancien pytest l'installait avec lui. Correction testée dans un venv jetable |
-| **Retenu** | _à remplir_ |
+| **Retenu** | réinstaller six manuellement |
 | **Vérifié** | _à remplir_ |
 
 ---
@@ -39,7 +39,7 @@
 |---|---|
 | **Demandé** | Pourquoi `oc-lettings-site.sqlite3` apparaît modifié dans `git status` alors que je n'ai rien changé |
 | **Produit** | Comparaison de la base commitée et de la base actuelle : une session de plus dans `django_session`, et `last_login` de l'admin passé de 2020-06-14 à 2026-10-06. C'est la connexion à l'admin qui a écrit dans la base |
-| **Retenu** | _à remplir_ |
+| **Retenu** | compris - restorer la base a l'état d'avant connexion avant tout commit |
 | **Vérifié** | _à remplir_ |
 
 ---
@@ -50,7 +50,7 @@
 |---|---|
 | **Demandé** | Passer à Python 3.14 et Django 5.2 LTS sans rien changer au fonctionnement, puis le prouver |
 | **Produit** | Les étapes : venv neuf, `pip freeze`, avertissement `W042` (et le piège `BigAutoField`, qui aurait modifié les trois tables), aperçu de la migration `auth 0012` avec `sqlmigrate` avant de l'appliquer, comparaison avec la référence |
-| **Retenu** | _à remplir_ |
+| **Retenu** | AutoField est suffisant et plus pratique et ne nécessite pas de migration |
 | **Vérifié** | _à remplir_ |
 
 **Effet de bord non anticipé :** l'IA avait prévu qu'un flake8 récent serait plus sévère. Mesure
@@ -99,3 +99,6 @@ exception was the direct cause… » : la cause est dans la première).
 
 - **L'apparence de l'admin change** entre Django 3.0 et 5.2 : arbitrage en faveur de la sécurité
   (voir `DECISIONS.md`, 2026-10-06).
+- **Refactorisation sans tests automatisés**, faute de temps : l'IA proposait d'écrire des tests
+  avant l'étape 1, j'ai choisi l'ordre de l'énoncé. Compensé par des vérifications manuelles
+  (comptages avant / après, captures de référence). Voir `DECISIONS.md`, « Plan du projet ».

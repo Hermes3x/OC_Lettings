@@ -92,3 +92,20 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Ce que ça coûte** : un plafond d'environ 2,1 milliards de lignes par table. Il faudra changer de type si le site devait un jour l'approcher.
 
 **Vérifié** : `python manage.py check` ne signale plus rien, et `python manage.py makemigrations --check --dry-run` répond `No changes detected` : aucune migration n'est nécessaire.
+
+## 2026-10-07 — Plan du projet
+
+**La question** : dans quel ordre mener le projet ?
+
+**Les options envisagées** :
+- (a) l'ordre de l'énoncé, précédé de l'étape 0 que j'ai ajoutée : 0. modernisation → 1. architecture modulaire → 2. dette technique (dont les tests) → 3. Sentry → 4. pipeline CI/CD et déploiement → 5. documentation ;
+- (b) écrire d'abord des tests sur les pages existantes, puis refactoriser : les tests prouveraient automatiquement que la refactorisation ne casse rien.
+
+**Mon choix** : (a).
+
+**Pourquoi** :
+- l'ordre de l'énoncé n'est pas un confort, ce sont des prérequis. L'étape 4 exige une couverture de tests supérieure à 80 %, donc l'étape 2 doit être terminée. L'étape 5 documente le déploiement, donc l'étape 4 doit être terminée ;
+- l'étape 0 n'est pas dans l'énoncé : je l'ai ajoutée parce que le projet ne démarrait pas sur ma machine (voir la première décision) ;
+- (b) prendrait du temps que je n'ai pas : les tests écrits avant la refactorisation devraient ensuite être déplacés dans les nouvelles applications, puisque l'énoncé exige que chaque test vive dans son application.
+
+**Ce que ça coûte** : la refactorisation de l'étape 1 se fait sans tests automatisés. Je compense par des vérifications manuelles : le nombre de lignes de chaque table avant et après les migrations (6 adresses, 6 locations, 4 profils), et la comparaison du site avec mes captures de référence.
