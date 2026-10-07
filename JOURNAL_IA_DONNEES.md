@@ -44,6 +44,48 @@
 
 ---
 
+## 4. Modernisation — mesurer plutôt que supposer
+
+| | |
+|---|---|
+| **Demandé** | Passer à Python 3.14 et Django 5.2 LTS sans rien changer au fonctionnement, puis le prouver |
+| **Produit** | Les étapes : venv neuf, `pip freeze`, avertissement `W042` (et le piège `BigAutoField`, qui aurait modifié les trois tables), aperçu de la migration `auth 0012` avec `sqlmigrate` avant de l'appliquer, comparaison avec la référence |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Effet de bord non anticipé :** l'IA avait prévu qu'un flake8 récent serait plus sévère. Mesure
+faite, c'est l'inverse sur une règle : `settings.py:114:40: E231 missing whitespace after ','`
+(`[BASE_DIR / "static",]`) n'est plus signalée par flake8 7.4.1. Référence : **18 erreurs**
+(flake8 3.7.0) → **17** (flake8 7.4.1), les 17 de `views.py` étant identiques ligne pour ligne.
+
+<details>
+<summary>Liste de référence flake8 3.7.0 (Python 3.8), 2026-10-06</summary>
+
+```
+.\oc_lettings_site\settings.py:114:40: E231 missing whitespace after ','
+.\oc_lettings_site\views.py:7:1: E303 too many blank lines (4)
+.\oc_lettings_site\views.py:7:100: E501 line too long (198 > 99 characters)
+.\oc_lettings_site\views.py:8:100: E501 line too long (153 > 99 characters)
+.\oc_lettings_site\views.py:9:100: E501 line too long (174 > 99 characters)
+.\oc_lettings_site\views.py:10:1: E302 expected 2 blank lines, found 4
+.\oc_lettings_site\views.py:13:100: E501 line too long (131 > 99 characters)
+.\oc_lettings_site\views.py:14:100: E501 line too long (140 > 99 characters)
+.\oc_lettings_site\views.py:15:1: E302 expected 2 blank lines, found 1
+.\oc_lettings_site\views.py:21:1: E265 block comment should start with '# '
+.\oc_lettings_site\views.py:21:100: E501 line too long (189 > 99 characters)
+.\oc_lettings_site\views.py:22:100: E501 line too long (216 > 99 characters)
+.\oc_lettings_site\views.py:23:100: E501 line too long (391 > 99 characters)
+.\oc_lettings_site\views.py:32:100: E501 line too long (112 > 99 characters)
+.\oc_lettings_site\views.py:34:1: E302 expected 2 blank lines, found 1
+.\oc_lettings_site\views.py:40:100: E501 line too long (147 > 99 characters)
+.\oc_lettings_site\views.py:41:100: E501 line too long (100 > 99 characters)
+.\oc_lettings_site\views.py:42:1: E302 expected 2 blank lines, found 1
+```
+
+</details>
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
