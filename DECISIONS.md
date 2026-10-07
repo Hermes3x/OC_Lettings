@@ -38,3 +38,39 @@
 - les fichiers de suivi s'adressent à un évaluateur francophone.
 
 **Ce que ça coûte** : deux langues dans le même dépôt. La frontière doit être nette et tenue : ce qui est lu par la machine et par les développeurs est en anglais, ce qui documente ma démarche est en français.
+
+## 2026-10-07 — Contenu du `requirements.txt`
+
+**La question** : après la modernisation, quelles versions fixer dans le nouveau `requirements.txt` ?
+
+**Les options envisagées** :
+- (a) les dépendances directes seulement (`django`, `flake8`, `pytest-django`), avec leur version exacte ;
+- (b) tout ce qui est installé, dépendances indirectes comprises (`pip freeze`).
+
+**Mon choix** : (b).
+
+**Pourquoi** : en installant la version de référence, pytest a planté sur `six`. Le `requirements.txt` d'origine ne fixait que les dépendances directes : pip a installé un pytest récent, qui n'apportait plus `six`. Le même fichier n'installait donc pas le même environnement en 2020 et en 2026. En fixant tout, le même fichier installe le même environnement, quelle que soit la date.
+
+**Ce que ça coûte** :
+- on ne distingue plus ce que j'ai choisi (3 paquets) de ce qui est venu avec (12 paquets) ;
+- deux paquets propres à Windows (`colorama`, `tzdata`) seront aussi installés sous Linux, sans effet gênant ;
+- les mises à jour de sécurité ne sont plus automatiques : il faudra mettre à jour le fichier volontairement.
+
+## 2026-10-07 — Branches git
+
+**La question** : travailler directement sur `master`, ou sur des branches ? Et comment les nommer ?
+
+**Les options envisagées** :
+- (a) tout sur `master` ;
+- (b) une branche par étape, fusionnée dans `master` quand l'étape est terminée.
+
+Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `step-0-upgrade` (préfixe selon les étapes de l'énoncé), `upgrade-django-5.2` (simple description).
+
+**Mon choix** : (b), avec la convention `step-<numéro>-<description>`. La modernisation est l'étape 0, puisqu'elle précède l'étape 1 de l'énoncé : `step-0-upgrade`.
+
+**Pourquoi** :
+- c'est plus sûr : une fois le pipeline en place, chaque push sur `master` déploie en production. Les autres branches ne lancent que les tests ;
+- c'est ce qui se pratique en entreprise ;
+- les noms de branches suivent les étapes de l'énoncé : mon plan se lit dans l'historique.
+
+**Ce que ça coûte** : quelques commandes git de plus à chaque étape. Pendant la démo, la modification du titre passera par une branche, puis par une fusion dans `master` : deux exécutions du pipeline au lieu d'une.

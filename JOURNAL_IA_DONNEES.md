@@ -18,7 +18,7 @@
 | **Demandé** | Pourquoi `runserver` plante après un `pip install` réussi, sous Python 3.14 |
 | **Produit** | Diagnostic : Django 3.0 importe `distutils` (retiré de Python 3.12) et `cgi` (retiré de 3.13). Deux options chiffrées : reproduire l'environnement d'origine, ou moderniser |
 | **Retenu** | _à remplir_ |
-| **Vérifié** | _à remplir_ |
+| **Vérifié** | Vérifications avant lancement de la modernisation : 6 adresses, 6 locations, 4 profils. Le site et l'admin tournent, flake8 donne 18 erreurs, pytest donne 1 passed. Captures d'écran réalisées. |
 
 ---
 
@@ -33,9 +33,21 @@
 
 ---
 
+## 3. La base versionnée — se connecter, c'est écrire
+
+| | |
+|---|---|
+| **Demandé** | Pourquoi `oc-lettings-site.sqlite3` apparaît modifié dans `git status` alors que je n'ai rien changé |
+| **Produit** | Comparaison de la base commitée et de la base actuelle : une session de plus dans `django_session`, et `last_login` de l'admin passé de 2020-06-14 à 2026-10-06. C'est la connexion à l'admin qui a écrit dans la base |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+---
+
 ## Notions apprises en cours de route
 
-LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · dépendance
+LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
+lancement d'un programme (un terminal ouvert avant une installation ne la voit pas) · dépendance
 transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée (« The above
 exception was the direct cause… » : la cause est dans la première).
 
