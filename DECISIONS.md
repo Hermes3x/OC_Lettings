@@ -93,6 +93,8 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 
 **Vérifié** : `python manage.py check` ne signale plus rien, et `python manage.py makemigrations --check --dry-run` répond `No changes detected` : aucune migration n'est nécessaire.
 
+**Complément (2026-10-10)** : la commande `startapp` écrit d'office `default_auto_field = 'django.db.models.BigAutoField'` dans le `apps.py` de chaque nouvelle application, ce qui l'emporte sur le réglage de `settings.py`. Je supprime cette ligne dans `lettings` et `profiles`, par cohérence : une seule règle, déclarée à un seul endroit.
+
 ## 2026-10-07 — Plan du projet
 
 **La question** : dans quel ordre mener le projet ?
