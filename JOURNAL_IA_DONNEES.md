@@ -97,8 +97,12 @@ faite, c'est l'inverse sur une règle : `settings.py:114:40: E231 missing whites
 
 **Qui a écrit quoi :** j'ai copié moi-même les modèles `Address` et `Letting` dans `lettings`. La
 migration de données de `lettings` vient de l'IA : je l'ai retapée, et sa relecture a trouvé
-4 fautes de frappe (`ger_model`, `object`, `schema_editaor`, `lettinfs`). J'écrirai seul celle de
-`profiles`, sur le même motif.
+4 fautes de frappe (`ger_model`, `object`, `schema_editaor`, `lettinfs`). **La migration de
+données de `profiles`, je l'ai écrite moi-même**, sur le même motif. Ma première version copiait
+des `User` au lieu des `Profile`, oubliait l'`id` et dépendait de la mauvaise migration ; la
+relecture de l'IA m'a indiqué les lignes, et j'ai corrigé en deux passes. En chemin, l'erreur
+`fields.E304` : les deux `Profile` voulaient le même chemin inverse `user.profile` → `related_name`
+sur l'ancien (voir `DECISIONS.md`).
 
 **Effet de bord non anticipé :** flake8 et pyflakes ne signalaient **aucune** erreur sur le fichier
 contenant ces 4 fautes. Ils vérifient la forme du code, pas l'existence des noms : seule

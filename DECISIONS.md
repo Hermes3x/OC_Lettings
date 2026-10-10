@@ -111,3 +111,17 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 - (b) prendrait du temps que je n'ai pas : les tests écrits avant la refactorisation devraient ensuite être déplacés dans les nouvelles applications, puisque l'énoncé exige que chaque test vive dans son application.
 
 **Ce que ça coûte** : la refactorisation de l'étape 1 se fait sans tests automatisés. Je compense par des vérifications manuelles : le nombre de lignes de chaque table avant et après les migrations (6 adresses, 6 locations, 4 profils), et la comparaison du site avec mes captures de référence.
+
+## 2026-10-10 — Conflit entre les deux modèles `Profile`
+
+**La question** : pendant le déplacement, l'ancien `Profile` (`oc_lettings_site`) et le nouveau (`profiles`) coexistent. Tous deux sont reliés à `User`, et Django veut créer pour chacun le chemin inverse `user.profile` : conflit (erreurs `fields.E304` et `E305`). Lequel renommer, avec `related_name` ?
+
+**Les options envisagées** :
+- (a) renommer le chemin de l'**ancien** modèle ;
+- (b) renommer le chemin du **nouveau** modèle.
+
+**Mon choix** : (a), avec le nom `old_profile`.
+
+**Pourquoi** : on modifie ce qui est voué à disparaître. Le nouveau modèle garde le nom naturel `user.profile`, sans retouche après la suppression de l'ancien. `old_profile` plutôt que `legacy_profile` : c'est plus clair. Aucun template ni aucune vue n'utilise `user.profile`, donc rien ne casse.
+
+**Ce que ça coûte** : une petite migration dans `oc_lettings_site`, qui n'existe que le temps du déplacement.
