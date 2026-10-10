@@ -86,12 +86,36 @@ faite, c'est l'inverse sur une règle : `settings.py:114:40: E231 missing whites
 
 ---
 
+## 5. Déplacer `Address` et `Letting` sans perdre une ligne
+
+| | |
+|---|---|
+| **Demandé** | Être guidé pas à pas pour déplacer les modèles vers l'application `lettings` (j'ai choisi de ne pas lire le tutoriel fourni par l'énoncé) |
+| **Produit** | La méthode en quatre phases (créer, copier avec les mêmes `id`, répéter pour `profiles`, supprimer). Le piège `BigAutoField` dans le `apps.py` généré. **La migration de données complète de `lettings`, fournie en exemple** : `RunPython` avec une fonction aller et une fonction retour, `apps.get_model` plutôt qu'un `import`. Les requêtes de vérification |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai copié moi-même les modèles `Address` et `Letting` dans `lettings`. La
+migration de données de `lettings` vient de l'IA : je l'ai retapée, et sa relecture a trouvé
+4 fautes de frappe (`ger_model`, `object`, `schema_editaor`, `lettinfs`). J'écrirai seul celle de
+`profiles`, sur le même motif.
+
+**Effet de bord non anticipé :** flake8 et pyflakes ne signalaient **aucune** erreur sur le fichier
+contenant ces 4 fautes. Ils vérifient la forme du code, pas l'existence des noms : seule
+l'exécution les révèle. La faute `lettinfs` ne se serait déclenchée qu'au retour en arrière, d'où
+le test `migrate lettings 0001`.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
 lancement d'un programme (un terminal ouvert avant une installation ne la voit pas) · dépendance
 transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée (« The above
-exception was the direct cause… » : la cause est dans la première).
+exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
+· `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
+et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc.
 
 ---
 
