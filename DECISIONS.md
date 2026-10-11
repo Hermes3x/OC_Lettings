@@ -125,3 +125,17 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : on modifie ce qui est voué à disparaître. Le nouveau modèle garde le nom naturel `user.profile`, sans retouche après la suppression de l'ancien. `old_profile` plutôt que `legacy_profile` : c'est plus clair. Aucun template ni aucune vue n'utilise `user.profile`, donc rien ne casse.
 
 **Ce que ça coûte** : une petite migration dans `oc_lettings_site`, qui n'existe que le temps du déplacement.
+
+## 2026-10-11 — Ordre des opérations 5 à 9 de l'étape 1
+
+**La question** : les opérations 5 à 9 (templates, URLs, espaces de noms, renommages, nettoyage) concernent les deux applications. Dans quel ordre les mener ?
+
+**Les options envisagées** :
+- (a) opération par opération, comme la liste de l'énoncé : tous les templates, puis toutes les URLs, etc. ;
+- (b) application par application : tout `lettings` (templates, vues, URLs, espace de noms, renommages), vérification, commit ; puis tout `profiles`.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est plus logique, et plus facile de contrôler que les changements se sont correctement effectués. Une URL, une vue et un template forment une même chaîne (MVT) : les déplacer ensemble permet de vérifier la chaîne entière, puis de commiter un site qui fonctionne.
+
+**Ce que ça coûte** : l'ordre de mes commits ne suit pas exactement la liste de l'énoncé. Toutes les opérations sont faites, regroupées par application.
