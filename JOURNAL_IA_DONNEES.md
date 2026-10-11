@@ -111,6 +111,29 @@ le test `migrate lettings 0001`.
 
 ---
 
+## 6. Templates, vues et URLs : déménager la chaîne MVT
+
+| | |
+|---|---|
+| **Demandé** | Comprendre la mécanique des 7 migrations ; puis les commandes pour déplacer templates, vues et URLs dans chaque application (opérations 5 à 9) |
+| **Produit** | Le tableau chronologique des 7 migrations et de leurs dépendances. MVT expliqué sur une requête réelle (`/lettings/3/`). La convention `app/templates/app/` et l'espace de noms `app_name`, « même problème, même solution ». Le contenu de `lettings/urls.py` et `profiles/urls.py`. La liste des liens `{% url %}` à modifier, fichier par fichier. Ce qu'il ne faut **pas** supprimer dans `oc_lettings_site` (les migrations) |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai choisi l'ordre « application par application » (`DECISIONS.md`). J'ai
+déplacé moi-même les vues avec leurs commentaires ; l'IA a fourni les deux `urls.py` et, pour
+`profiles`, les commandes et la liste des modifications, à ma demande, pour gagner du temps.
+
+**Effet de bord non anticipé :** le « Tout remplacer » de VS Code agit sur tout le dossier ouvert,
+donc aussi **hors du dépôt** : il a modifié le `CLAUDE.md` qui cite les anciens noms. À limiter
+avec le champ « fichiers à inclure ».
+
+**Piège évité :** `render(request, 'index.html')` dans la vue des locations n'aurait produit
+**aucune erreur** : il aurait affiché la page d'accueil du projet. Seul le sous-dossier
+(`'lettings/index.html'`) désigne le bon fichier.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
