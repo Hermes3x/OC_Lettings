@@ -92,3 +92,50 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Ce que ça coûte** : un plafond d'environ 2,1 milliards de lignes par table. Il faudra changer de type si le site devait un jour l'approcher.
 
 **Vérifié** : `python manage.py check` ne signale plus rien, et `python manage.py makemigrations --check --dry-run` répond `No changes detected` : aucune migration n'est nécessaire.
+
+**Complément (2026-10-10)** : la commande `startapp` écrit d'office `default_auto_field = 'django.db.models.BigAutoField'` dans le `apps.py` de chaque nouvelle application, ce qui l'emporte sur le réglage de `settings.py`. Je supprime cette ligne dans `lettings` et `profiles`, par cohérence : une seule règle, déclarée à un seul endroit.
+
+## 2026-10-07 — Plan du projet
+
+**La question** : dans quel ordre mener le projet ?
+
+**Les options envisagées** :
+- (a) l'ordre de l'énoncé, précédé de l'étape 0 que j'ai ajoutée : 0. modernisation → 1. architecture modulaire → 2. dette technique (dont les tests) → 3. Sentry → 4. pipeline CI/CD et déploiement → 5. documentation ;
+- (b) écrire d'abord des tests sur les pages existantes, puis refactoriser : les tests prouveraient automatiquement que la refactorisation ne casse rien.
+
+**Mon choix** : (a).
+
+**Pourquoi** :
+- l'ordre de l'énoncé n'est pas un confort, ce sont des prérequis. L'étape 4 exige une couverture de tests supérieure à 80 %, donc l'étape 2 doit être terminée. L'étape 5 documente le déploiement, donc l'étape 4 doit être terminée ;
+- l'étape 0 n'est pas dans l'énoncé : je l'ai ajoutée parce que le projet ne démarrait pas sur ma machine (voir la première décision) ;
+- (b) prendrait du temps que je n'ai pas : les tests écrits avant la refactorisation devraient ensuite être déplacés dans les nouvelles applications, puisque l'énoncé exige que chaque test vive dans son application.
+
+**Ce que ça coûte** : la refactorisation de l'étape 1 se fait sans tests automatisés. Je compense par des vérifications manuelles : le nombre de lignes de chaque table avant et après les migrations (6 adresses, 6 locations, 4 profils), et la comparaison du site avec mes captures de référence.
+
+## 2026-10-10 — Conflit entre les deux modèles `Profile`
+
+**La question** : pendant le déplacement, l'ancien `Profile` (`oc_lettings_site`) et le nouveau (`profiles`) coexistent. Tous deux sont reliés à `User`, et Django veut créer pour chacun le chemin inverse `user.profile` : conflit (erreurs `fields.E304` et `E305`). Lequel renommer, avec `related_name` ?
+
+**Les options envisagées** :
+- (a) renommer le chemin de l'**ancien** modèle ;
+- (b) renommer le chemin du **nouveau** modèle.
+
+**Mon choix** : (a), avec le nom `old_profile`.
+
+**Pourquoi** : on modifie ce qui est voué à disparaître. Le nouveau modèle garde le nom naturel `user.profile`, sans retouche après la suppression de l'ancien. `old_profile` plutôt que `legacy_profile` : c'est plus clair. Aucun template ni aucune vue n'utilise `user.profile`, donc rien ne casse.
+
+**Ce que ça coûte** : une petite migration dans `oc_lettings_site`, qui n'existe que le temps du déplacement.
+
+## 2026-10-11 — Ordre des opérations 5 à 9 de l'étape 1
+
+**La question** : les opérations 5 à 9 (templates, URLs, espaces de noms, renommages, nettoyage) concernent les deux applications. Dans quel ordre les mener ?
+
+**Les options envisagées** :
+- (a) opération par opération, comme la liste de l'énoncé : tous les templates, puis toutes les URLs, etc. ;
+- (b) application par application : tout `lettings` (templates, vues, URLs, espace de noms, renommages), vérification, commit ; puis tout `profiles`.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est plus logique, et plus facile de contrôler que les changements se sont correctement effectués. Une URL, une vue et un template forment une même chaîne (MVT) : les déplacer ensemble permet de vérifier la chaîne entière, puis de commiter un site qui fonctionne.
+
+**Ce que ça coûte** : l'ordre de mes commits ne suit pas exactement la liste de l'énoncé. Toutes les opérations sont faites, regroupées par application.

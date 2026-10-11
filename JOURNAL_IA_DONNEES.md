@@ -17,7 +17,7 @@
 |---|---|
 | **Demandé** | Pourquoi `runserver` plante après un `pip install` réussi, sous Python 3.14 |
 | **Produit** | Diagnostic : Django 3.0 importe `distutils` (retiré de Python 3.12) et `cgi` (retiré de 3.13). Deux options chiffrées : reproduire l'environnement d'origine, ou moderniser |
-| **Retenu** | _à remplir_ |
+| **Retenu** | Option c :  reproduire l'environnement d'origine afin d'obtenir l'état et le fonctionnement de référence puis moderniser |
 | **Vérifié** | Vérifications avant lancement de la modernisation : 6 adresses, 6 locations, 4 profils. Le site et l'admin tournent, flake8 donne 18 erreurs, pytest donne 1 passed. Captures d'écran réalisées. |
 
 ---
@@ -28,7 +28,7 @@
 |---|---|
 | **Demandé** | Pourquoi `pytest` plante sur `No module named 'six'` alors que le `requirements.txt` est installé tel quel |
 | **Produit** | Diagnostic : `pytest` n'est pas épinglé, pip installe la 8.3.5 ; `pytest-django` 3.9 utilisait `six` sans le déclarer, l'ancien pytest l'installait avec lui. Correction testée dans un venv jetable |
-| **Retenu** | _à remplir_ |
+| **Retenu** | réinstaller six manuellement |
 | **Vérifié** | _à remplir_ |
 
 ---
@@ -39,7 +39,7 @@
 |---|---|
 | **Demandé** | Pourquoi `oc-lettings-site.sqlite3` apparaît modifié dans `git status` alors que je n'ai rien changé |
 | **Produit** | Comparaison de la base commitée et de la base actuelle : une session de plus dans `django_session`, et `last_login` de l'admin passé de 2020-06-14 à 2026-10-06. C'est la connexion à l'admin qui a écrit dans la base |
-| **Retenu** | _à remplir_ |
+| **Retenu** | compris - restorer la base a l'état d'avant connexion avant tout commit |
 | **Vérifié** | _à remplir_ |
 
 ---
@@ -50,7 +50,7 @@
 |---|---|
 | **Demandé** | Passer à Python 3.14 et Django 5.2 LTS sans rien changer au fonctionnement, puis le prouver |
 | **Produit** | Les étapes : venv neuf, `pip freeze`, avertissement `W042` (et le piège `BigAutoField`, qui aurait modifié les trois tables), aperçu de la migration `auth 0012` avec `sqlmigrate` avant de l'appliquer, comparaison avec la référence |
-| **Retenu** | _à remplir_ |
+| **Retenu** | AutoField est suffisant et plus pratique et ne nécessite pas de migration |
 | **Vérifié** | _à remplir_ |
 
 **Effet de bord non anticipé :** l'IA avait prévu qu'un flake8 récent serait plus sévère. Mesure
@@ -86,12 +86,63 @@ faite, c'est l'inverse sur une règle : `settings.py:114:40: E231 missing whites
 
 ---
 
+## 5. Déplacer `Address` et `Letting` sans perdre une ligne
+
+| | |
+|---|---|
+| **Demandé** | Être guidé pas à pas pour déplacer les modèles vers l'application `lettings` (j'ai choisi de ne pas lire le tutoriel fourni par l'énoncé) |
+| **Produit** | La méthode en quatre phases (créer, copier avec les mêmes `id`, répéter pour `profiles`, supprimer). Le piège `BigAutoField` dans le `apps.py` généré. **La migration de données complète de `lettings`, fournie en exemple** : `RunPython` avec une fonction aller et une fonction retour, `apps.get_model` plutôt qu'un `import`. Les requêtes de vérification |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai copié moi-même les modèles `Address` et `Letting` dans `lettings`. La
+migration de données de `lettings` vient de l'IA : je l'ai retapée, et sa relecture a trouvé
+4 fautes de frappe (`ger_model`, `object`, `schema_editaor`, `lettinfs`). **La migration de
+données de `profiles`, je l'ai écrite moi-même**, sur le même motif. Ma première version copiait
+des `User` au lieu des `Profile`, oubliait l'`id` et dépendait de la mauvaise migration ; la
+relecture de l'IA m'a indiqué les lignes, et j'ai corrigé en deux passes. En chemin, l'erreur
+`fields.E304` : les deux `Profile` voulaient le même chemin inverse `user.profile` → `related_name`
+sur l'ancien (voir `DECISIONS.md`).
+
+**Effet de bord non anticipé :** flake8 et pyflakes ne signalaient **aucune** erreur sur le fichier
+contenant ces 4 fautes. Ils vérifient la forme du code, pas l'existence des noms : seule
+l'exécution les révèle. La faute `lettinfs` ne se serait déclenchée qu'au retour en arrière, d'où
+le test `migrate lettings 0001`.
+
+---
+
+## 6. Templates, vues et URLs : déménager la chaîne MVT
+
+| | |
+|---|---|
+| **Demandé** | Comprendre la mécanique des 7 migrations ; puis les commandes pour déplacer templates, vues et URLs dans chaque application (opérations 5 à 9) |
+| **Produit** | Le tableau chronologique des 7 migrations et de leurs dépendances. MVT expliqué sur une requête réelle (`/lettings/3/`). La convention `app/templates/app/` et l'espace de noms `app_name`, « même problème, même solution ». Le contenu de `lettings/urls.py` et `profiles/urls.py`. La liste des liens `{% url %}` à modifier, fichier par fichier. Ce qu'il ne faut **pas** supprimer dans `oc_lettings_site` (les migrations) |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai choisi l'ordre « application par application » (`DECISIONS.md`). J'ai
+déplacé moi-même les vues avec leurs commentaires ; l'IA a fourni les deux `urls.py` et, pour
+`profiles`, les commandes et la liste des modifications, à ma demande, pour gagner du temps.
+
+**Effet de bord non anticipé :** le « Tout remplacer » de VS Code agit sur tout le dossier ouvert,
+donc aussi **hors du dépôt** : il a modifié le `CLAUDE.md` qui cite les anciens noms. À limiter
+avec le champ « fichiers à inclure ».
+
+**Piège évité :** `render(request, 'index.html')` dans la vue des locations n'aurait produit
+**aucune erreur** : il aurait affiché la page d'accueil du projet. Seul le sous-dossier
+(`'lettings/index.html'`) désigne le bon fichier.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
 lancement d'un programme (un terminal ouvert avant une installation ne la voit pas) · dépendance
 transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée (« The above
-exception was the direct cause… » : la cause est dans la première).
+exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
+· `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
+et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc.
 
 ---
 
@@ -99,3 +150,6 @@ exception was the direct cause… » : la cause est dans la première).
 
 - **L'apparence de l'admin change** entre Django 3.0 et 5.2 : arbitrage en faveur de la sécurité
   (voir `DECISIONS.md`, 2026-10-06).
+- **Refactorisation sans tests automatisés**, faute de temps : l'IA proposait d'écrire des tests
+  avant l'étape 1, j'ai choisi l'ordre de l'énoncé. Compensé par des vérifications manuelles
+  (comptages avant / après, captures de référence). Voir `DECISIONS.md`, « Plan du projet ».
