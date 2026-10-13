@@ -139,3 +139,15 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : c'est plus logique, et plus facile de contrôler que les changements se sont correctement effectués. Une URL, une vue et un template forment une même chaîne (MVT) : les déplacer ensemble permet de vérifier la chaîne entière, puis de commiter un site qui fonctionne.
 
 **Ce que ça coûte** : l'ordre de mes commits ne suit pas exactement la liste de l'énoncé. Toutes les opérations sont faites, regroupées par application.
+
+## 2026-10-13 — Ordre des livrables de l'étape 2
+
+**La question** : dans quel ordre traiter les cinq livrables de la dette technique ?
+
+**Les options envisagées** : l'ordre de l'énoncé, ou un ordre du plus rapide au plus long, avec les tests en dernier.
+
+**Mon choix** : l'ordre proposé par l'IA, que j'ai validé : 1. le pluriel de l'admin, 2. les pages 404 et 500, 3. flake8 à zéro, 4. les docstrings, 5. les tests et la couverture.
+
+**Pourquoi** : les livrables rapides d'abord ; les tests en dernier, pour qu'ils portent sur le code final, pages d'erreur et docstrings comprises.
+
+**Ce que ça coûte** : les modifications des étapes 1 à 4 ne sont protégées par aucun test automatisé avant la fin de l'étape. Je compense en vérifiant le site après chacune.

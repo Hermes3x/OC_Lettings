@@ -142,7 +142,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include`.
 
 ---
 
