@@ -151,3 +151,17 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : les livrables rapides d'abord ; les tests en dernier, pour qu'ils portent sur le code final, pages d'erreur et docstrings comprises.
 
 **Ce que ça coûte** : les modifications des étapes 1 à 4 ne sont protégées par aucun test automatisé avant la fin de l'étape. Je compense en vérifiant le site après chacune.
+
+## 2026-10-13 — Une location ou un profil inexistant : 404 et non 500
+
+**La question** : en testant ma page 404, j'ai constaté que `/lettings/999/` (une location qui n'existe pas) renvoyait une **erreur 500**. Les vues utilisent `.get()`, qui lève une exception quand l'objet n'existe pas, et personne ne l'attrape. Faut-il corriger, alors que l'énoncé parle de pure refactorisation ?
+
+**Les options envisagées** :
+- (a) laisser tel quel ;
+- (b) remplacer `.get()` par `get_object_or_404` dans les vues `letting` et `profile`.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est une question de sens. Si l'erreur réelle est une ressource introuvable, la réponse doit annoncer 404, pas « le serveur a planté ». Ma page 404 est ainsi utilisée à bon escient, et à l'étape 3, Sentry ne remontera pas ces fausses pannes.
+
+**Ce que ça coûte** : un changement de comportement, assumé, dans une étape consacrée à la dette technique. Une conséquence : sur le site, plus aucune adresse ne provoque d'erreur 500. Pour montrer ma page 500, il me faudra un test, ou une route prévue pour déclencher une erreur volontairement.
