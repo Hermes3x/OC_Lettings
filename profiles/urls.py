@@ -1,3 +1,5 @@
+"""URL routes of the profiles application, under the 'profiles' namespace."""
+
 from django.urls import path
 
 from . import views

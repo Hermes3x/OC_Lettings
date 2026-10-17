@@ -153,6 +153,26 @@ un vrai bug.
 
 ---
 
+## 8. Docstrings : 40 éléments, deux auteurs
+
+| | |
+|---|---|
+| **Demandé** | Une convention de docstrings lisible par Sphinx ; une répartition du travail ; la relecture de mes docstrings, fichier par fichier |
+| **Produit** | Deux conventions comparées (Google, reStructuredText). Un exemple complet par type d'élément (module, modèle, `Meta`, `__str__`, vue). Un inventaire automatique des éléments sans docstring. **Les 16 docstrings de la plomberie** (`__init__`, `apps`, `admin`, `manage`, `settings`, `wsgi`, `asgi`) |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai écrit les 20 docstrings des modèles, des vues et des URLs ; l'IA a
+écrit celles de la plomberie, comme convenu dans `DECISIONS.md`.
+
+**Ce que la relecture a corrigé chez moi :** une docstring de module placée **après** les imports
+(ce n'est alors plus une docstring) ; des **variables locales** documentées comme des paramètres ;
+des chaînes placées au-dessus de variables (Python ne reconnaît une docstring qu'en tête d'un
+module, d'une classe ou d'une fonction) ; une docstring mal indentée qui empêchait le site de
+démarrer ; un copier-coller qui attribuait un espace de noms au routeur principal, qui n'en a pas.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au

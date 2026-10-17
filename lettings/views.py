@@ -1,3 +1,5 @@
+"""Views of the lettings application: index and letting."""
+
 from django.shortcuts import get_object_or_404, render
 from .models import Letting
 
@@ -7,8 +9,17 @@ from .models import Letting
 # tempor et, bibendum id arcu. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
 # posuere cubilia curae; Cras eget scelerisque
 def index(request):
+    """Display the list of all lettings.
+
+    Args:
+        request (HttpRequest): the incoming HTTP request.
+
+    Returns:
+        HttpResponse: the rendered list of lettings.
+    """
     lettings_list = Letting.objects.all()
     context = {'lettings_list': lettings_list}
+
     return render(request, 'lettings/index.html', context)
 
 
@@ -24,6 +35,18 @@ def index(request):
 # auctor elementum. Donec quis nisi ligula. Integer vehicula tincidunt enim, ac lacinia augue
 # pulvinar sit amet.
 def letting(request, letting_id):
+    """Display a single letting.
+
+    Args:
+        request (HttpRequest): the incoming HTTP request.
+        letting_id (int): the letting id.
+
+    Returns:
+        HttpResponse: the rendered letting.
+
+    Raises:
+        Http404: if no letting has this id.
+    """
     letting = get_object_or_404(Letting, id=letting_id)
     context = {
         'title': letting.title,

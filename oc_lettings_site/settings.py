@@ -1,3 +1,9 @@
+"""Django settings for the Orange County Lettings project.
+
+Configuration shared by the whole project: installed applications, database,
+templates, static files and security options.
+"""
+
 import os
 
 from pathlib import Path

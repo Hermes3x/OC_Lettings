@@ -1,3 +1,8 @@
+"""WSGI entry point of the project.
+
+Exposes the ``application`` callable that WSGI servers use to serve the site.
+"""
+
 import os
 
 from django.core.wsgi import get_wsgi_application

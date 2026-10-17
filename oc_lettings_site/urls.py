@@ -1,3 +1,5 @@
+"""Root URL routes of the project (ROOT_URLCONF): home page, admin, lettings and profiles."""
+
 from django.contrib import admin
 from django.urls import include, path
 

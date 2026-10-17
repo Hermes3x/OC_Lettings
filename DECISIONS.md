@@ -165,3 +165,17 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : c'est une question de sens. Si l'erreur réelle est une ressource introuvable, la réponse doit annoncer 404, pas « le serveur a planté ». Ma page 404 est ainsi utilisée à bon escient, et à l'étape 3, Sentry ne remontera pas ces fausses pannes.
 
 **Ce que ça coûte** : un changement de comportement, assumé, dans une étape consacrée à la dette technique. Une conséquence : sur le site, plus aucune adresse ne provoque d'erreur 500. Pour montrer ma page 500, il me faudra un test, ou une route prévue pour déclencher une erreur volontairement.
+
+## 2026-10-17 — Docstrings : convention et répartition
+
+**La question** : l'énoncé exige une docstring sur chaque module, classe et fonction, qui explique la fonctionnalité, les paramètres et la valeur de retour. Selon quelle convention, et qui les écrit ?
+
+**Les options envisagées** :
+- (a) le style Google (sections `Args:`, `Returns:`, `Attributes:`) ;
+- (b) le style reStructuredText (`:param x:`, `:return:`), le format natif de Sphinx.
+
+**Mon choix** : (a). Répartition : j'écris les docstrings des modèles, des vues et des URLs ; l'IA écrit celles de la plomberie générée par Django (`__init__.py`, `apps.py`, `admin.py`, `manage.py`, `settings.py`, `wsgi.py`, `asgi.py`).
+
+**Pourquoi** : le style reStructuredText, je n'arrive pas à le lire. Le style Google est lisible, et ses sections répondent mot pour mot à l'énoncé (paramètres, valeur de retour). La répartition : je dois pouvoir expliquer les modèles, les vues et les URLs en soutenance ; rédiger leur docstring, c'est aussi les réviser.
+
+**Ce que ça coûte** : à l'étape 5, Sphinx devra activer l'extension `napoleon` pour lire le style Google. Elle est fournie avec Sphinx : rien à installer, une ligne de configuration.
