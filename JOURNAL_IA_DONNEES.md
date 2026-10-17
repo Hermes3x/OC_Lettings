@@ -134,6 +134,70 @@ avec le champ « fichiers à inclure ».
 
 ---
 
+## 7. Dette technique : pluriel, pages d'erreur, flake8
+
+| | |
+|---|---|
+| **Demandé** | Corriger « Addresss » ; créer des pages 404 et 500 ; ramener flake8 à zéro sans toucher `setup.cfg` ni supprimer les commentaires |
+| **Produit** | `class Meta` et `verbose_name_plural`. Le fonctionnement des pages d'erreur (`DEBUG = False`, `ALLOWED_HOSTS`, `runserver --insecure`). Le diagnostic de `/lettings/999/` en 500 et la correction `get_object_or_404`. **La découpe des commentaires à 99 caractères, faite par l'IA à ma demande**, avec une vérification automatique que les 303 mots des commentaires sont restés identiques |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai écrit la `class Meta`, les deux templates d'erreur (la phrase de la
+page 500 venait de l'IA) et les deux `get_object_or_404`. La découpe des commentaires pour flake8
+est de l'IA : un travail de mise en forme sans logique, que je lui ai délégué.
+
+**Effet de bord non anticipé :** en testant ma page 404, j'ai découvert qu'une location inexistante
+faisait **planter** le serveur (500) au lieu de répondre 404. Le test d'une page d'erreur a révélé
+un vrai bug.
+
+---
+
+## 8. Docstrings : 40 éléments, deux auteurs
+
+| | |
+|---|---|
+| **Demandé** | Une convention de docstrings lisible par Sphinx ; une répartition du travail ; la relecture de mes docstrings, fichier par fichier |
+| **Produit** | Deux conventions comparées (Google, reStructuredText). Un exemple complet par type d'élément (module, modèle, `Meta`, `__str__`, vue). Un inventaire automatique des éléments sans docstring. **Les 16 docstrings de la plomberie** (`__init__`, `apps`, `admin`, `manage`, `settings`, `wsgi`, `asgi`) |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai écrit les 20 docstrings des modèles, des vues et des URLs ; l'IA a
+écrit celles de la plomberie, comme convenu dans `DECISIONS.md`.
+
+**Ce que la relecture a corrigé chez moi :** une docstring de module placée **après** les imports
+(ce n'est alors plus une docstring) ; des **variables locales** documentées comme des paramètres ;
+des chaînes placées au-dessus de variables (Python ne reconnaît une docstring qu'en tête d'un
+module, d'une classe ou d'une fonction) ; une docstring mal indentée qui empêchait le site de
+démarrer ; un copier-coller qui attribuait un espace de noms au routeur principal, qui n'en a pas.
+
+---
+
+## 9. Tests et couverture : de 34 % à 84 %, honnêtement
+
+| | |
+|---|---|
+| **Demandé** | Atteindre plus de 80 % de couverture avec des tests unitaires et d'intégration, rangés dans leur application ; comprendre pourquoi la couverture a bondi avec trois tests |
+| **Produit** | La configuration `.coveragerc` (hors `setup.cfg`, intouchable). Un fichier d'exemple de 3 tests pour `lettings`. L'explication du bond 34 % → 80 % : les migrations, rejouées pour créer la base de test, comptées comme couvertes. L'outil `server_error` + `rf` pour tester la page 500 sans faire planter le serveur |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a fourni l'exemple de 3 tests et le test de la page 500. J'ai écrit
+les 14 autres, relus et corrigés au fil de l'eau. Mes confusions corrigées : un paramètre de test
+qui n'était pas une fixture, puis une fixture que le test ne demandait pas ; `client.get()` avec
+le chemin d'un template au lieu d'une URL ; `reverse()` avec une adresse au lieu d'un nom de route ;
+la route d'un profil, qui prend un nom d'utilisateur et non un `id` ; `jdoe` sans guillemets.
+
+**Anecdote à raconter en soutenance :** mon test de `Letting.__str__` passait… sans jamais appeler
+`Letting.__str__` : j'avais écrit `str(letting.title)`, le `__str__` d'un simple texte. C'est la
+couverture qui l'a révélé : la ligne restait « Missing » alors que le test était vert.
+
+**Effet de bord non anticipé :** mon test de la 404 a échoué en m'affichant
+« Actual template(s) used: 404.html » : c'est lui qui m'a prouvé que ma page personnalisée
+fonctionnait, alors que je ne la voyais pas en local (`DEBUG = True`).
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
@@ -142,7 +206,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include`.
 
 ---
 

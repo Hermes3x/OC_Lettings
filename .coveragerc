@@ -1,0 +1,6 @@
+[run]
+source = .
+omit =
+    */tests.py
+    */migrations/*
+    venv/*

@@ -139,3 +139,57 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : c'est plus logique, et plus facile de contrôler que les changements se sont correctement effectués. Une URL, une vue et un template forment une même chaîne (MVT) : les déplacer ensemble permet de vérifier la chaîne entière, puis de commiter un site qui fonctionne.
 
 **Ce que ça coûte** : l'ordre de mes commits ne suit pas exactement la liste de l'énoncé. Toutes les opérations sont faites, regroupées par application.
+
+## 2026-10-13 — Ordre des livrables de l'étape 2
+
+**La question** : dans quel ordre traiter les cinq livrables de la dette technique ?
+
+**Les options envisagées** : l'ordre de l'énoncé, ou un ordre du plus rapide au plus long, avec les tests en dernier.
+
+**Mon choix** : l'ordre proposé par l'IA, que j'ai validé : 1. le pluriel de l'admin, 2. les pages 404 et 500, 3. flake8 à zéro, 4. les docstrings, 5. les tests et la couverture.
+
+**Pourquoi** : les livrables rapides d'abord ; les tests en dernier, pour qu'ils portent sur le code final, pages d'erreur et docstrings comprises.
+
+**Ce que ça coûte** : les modifications des étapes 1 à 4 ne sont protégées par aucun test automatisé avant la fin de l'étape. Je compense en vérifiant le site après chacune.
+
+## 2026-10-13 — Une location ou un profil inexistant : 404 et non 500
+
+**La question** : en testant ma page 404, j'ai constaté que `/lettings/999/` (une location qui n'existe pas) renvoyait une **erreur 500**. Les vues utilisent `.get()`, qui lève une exception quand l'objet n'existe pas, et personne ne l'attrape. Faut-il corriger, alors que l'énoncé parle de pure refactorisation ?
+
+**Les options envisagées** :
+- (a) laisser tel quel ;
+- (b) remplacer `.get()` par `get_object_or_404` dans les vues `letting` et `profile`.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est une question de sens. Si l'erreur réelle est une ressource introuvable, la réponse doit annoncer 404, pas « le serveur a planté ». Ma page 404 est ainsi utilisée à bon escient, et à l'étape 3, Sentry ne remontera pas ces fausses pannes.
+
+**Ce que ça coûte** : un changement de comportement, assumé, dans une étape consacrée à la dette technique. Une conséquence : sur le site, plus aucune adresse ne provoque d'erreur 500. Pour montrer ma page 500, il me faudra un test, ou une route prévue pour déclencher une erreur volontairement.
+
+## 2026-10-17 — Docstrings : convention et répartition
+
+**La question** : l'énoncé exige une docstring sur chaque module, classe et fonction, qui explique la fonctionnalité, les paramètres et la valeur de retour. Selon quelle convention, et qui les écrit ?
+
+**Les options envisagées** :
+- (a) le style Google (sections `Args:`, `Returns:`, `Attributes:`) ;
+- (b) le style reStructuredText (`:param x:`, `:return:`), le format natif de Sphinx.
+
+**Mon choix** : (a). Répartition : j'écris les docstrings des modèles, des vues et des URLs ; l'IA écrit celles de la plomberie générée par Django (`__init__.py`, `apps.py`, `admin.py`, `manage.py`, `settings.py`, `wsgi.py`, `asgi.py`).
+
+**Pourquoi** : le style reStructuredText, je n'arrive pas à le lire. Le style Google est lisible, et ses sections répondent mot pour mot à l'énoncé (paramètres, valeur de retour). La répartition : je dois pouvoir expliquer les modèles, les vues et les URLs en soutenance ; rédiger leur docstring, c'est aussi les réviser.
+
+**Ce que ça coûte** : à l'étape 5, Sphinx devra activer l'extension `napoleon` pour lire le style Google. Elle est fournie avec Sphinx : rien à installer, une ligne de configuration.
+
+## 2026-10-17 — Ce que compte la couverture de tests
+
+**La question** : avec seulement trois tests, la couverture est passée de 34 % à 80 %. La cause : pour créer sa base de test, pytest rejoue toutes les migrations, et leurs lignes sont comptées comme « couvertes » sans qu'aucun test ne les vérifie. Les lignes de copie, à l'intérieur des boucles, n'ont même jamais tourné : la base de test est vide. Faut-il compter les migrations dans la couverture ?
+
+**Les options envisagées** :
+- (a) les garder : l'énoncé n'exclut que les fichiers de tests ;
+- (b) les exclure aussi (`*/migrations/*` dans `.coveragerc`).
+
+**Mon choix** : (b).
+
+**Pourquoi** : dans l'état actuel, le résultat est trompeur. Une couverture compte des lignes exécutées, pas des fonctionnalités vérifiées. Sans les migrations, le pourcentage mesure le code que j'ai écrit et testé : modèles, vues, URLs.
+
+**Ce que ça coûte** : la couverture tombe à 74 %, et il faut de vrais tests pour dépasser 80 %. Les migrations de copie restent vérifiées autrement : par les comptages et les jointures faits à l'étape 1. `manage.py`, `wsgi.py` et `asgi.py` restent comptés, alors qu'aucun test ne les exécute : ce sont les points d'entrée du serveur. Ils plafonnent la couverture atteignable à environ 84 %.

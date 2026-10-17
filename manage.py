@@ -1,8 +1,15 @@
+"""Django's command-line utility for administrative tasks (runserver, migrate...)."""
+
 import os
 import sys
 
 
 def main():
+    """Point Django to the project settings and run the requested command.
+
+    Raises:
+        ImportError: if Django is not installed or the virtual environment is not active.
+    """
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'oc_lettings_site.settings')
     try:
         from django.core.management import execute_from_command_line
