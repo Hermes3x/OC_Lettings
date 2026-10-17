@@ -173,6 +173,31 @@ démarrer ; un copier-coller qui attribuait un espace de noms au routeur princip
 
 ---
 
+## 9. Tests et couverture : de 34 % à 84 %, honnêtement
+
+| | |
+|---|---|
+| **Demandé** | Atteindre plus de 80 % de couverture avec des tests unitaires et d'intégration, rangés dans leur application ; comprendre pourquoi la couverture a bondi avec trois tests |
+| **Produit** | La configuration `.coveragerc` (hors `setup.cfg`, intouchable). Un fichier d'exemple de 3 tests pour `lettings`. L'explication du bond 34 % → 80 % : les migrations, rejouées pour créer la base de test, comptées comme couvertes. L'outil `server_error` + `rf` pour tester la page 500 sans faire planter le serveur |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a fourni l'exemple de 3 tests et le test de la page 500. J'ai écrit
+les 14 autres, relus et corrigés au fil de l'eau. Mes confusions corrigées : un paramètre de test
+qui n'était pas une fixture, puis une fixture que le test ne demandait pas ; `client.get()` avec
+le chemin d'un template au lieu d'une URL ; `reverse()` avec une adresse au lieu d'un nom de route ;
+la route d'un profil, qui prend un nom d'utilisateur et non un `id` ; `jdoe` sans guillemets.
+
+**Anecdote à raconter en soutenance :** mon test de `Letting.__str__` passait… sans jamais appeler
+`Letting.__str__` : j'avais écrit `str(letting.title)`, le `__str__` d'un simple texte. C'est la
+couverture qui l'a révélé : la ligne restait « Missing » alors que le test était vert.
+
+**Effet de bord non anticipé :** mon test de la 404 a échoué en m'affichant
+« Actual template(s) used: 404.html » : c'est lui qui m'a prouvé que ma page personnalisée
+fonctionnait, alors que je ne la voyais pas en local (`DEBUG = True`).
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au

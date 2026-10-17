@@ -179,3 +179,17 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : le style reStructuredText, je n'arrive pas à le lire. Le style Google est lisible, et ses sections répondent mot pour mot à l'énoncé (paramètres, valeur de retour). La répartition : je dois pouvoir expliquer les modèles, les vues et les URLs en soutenance ; rédiger leur docstring, c'est aussi les réviser.
 
 **Ce que ça coûte** : à l'étape 5, Sphinx devra activer l'extension `napoleon` pour lire le style Google. Elle est fournie avec Sphinx : rien à installer, une ligne de configuration.
+
+## 2026-10-17 — Ce que compte la couverture de tests
+
+**La question** : avec seulement trois tests, la couverture est passée de 34 % à 80 %. La cause : pour créer sa base de test, pytest rejoue toutes les migrations, et leurs lignes sont comptées comme « couvertes » sans qu'aucun test ne les vérifie. Les lignes de copie, à l'intérieur des boucles, n'ont même jamais tourné : la base de test est vide. Faut-il compter les migrations dans la couverture ?
+
+**Les options envisagées** :
+- (a) les garder : l'énoncé n'exclut que les fichiers de tests ;
+- (b) les exclure aussi (`*/migrations/*` dans `.coveragerc`).
+
+**Mon choix** : (b).
+
+**Pourquoi** : dans l'état actuel, le résultat est trompeur. Une couverture compte des lignes exécutées, pas des fonctionnalités vérifiées. Sans les migrations, le pourcentage mesure le code que j'ai écrit et testé : modèles, vues, URLs.
+
+**Ce que ça coûte** : la couverture tombe à 74 %, et il faut de vrais tests pour dépasser 80 %. Les migrations de copie restent vérifiées autrement : par les comptages et les jointures faits à l'étape 1. `manage.py`, `wsgi.py` et `asgi.py` restent comptés, alors qu'aucun test ne les exécute : ce sont les points d'entrée du serveur. Ils plafonnent la couverture atteignable à environ 84 %.
