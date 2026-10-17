@@ -134,6 +134,25 @@ avec le champ « fichiers à inclure ».
 
 ---
 
+## 7. Dette technique : pluriel, pages d'erreur, flake8
+
+| | |
+|---|---|
+| **Demandé** | Corriger « Addresss » ; créer des pages 404 et 500 ; ramener flake8 à zéro sans toucher `setup.cfg` ni supprimer les commentaires |
+| **Produit** | `class Meta` et `verbose_name_plural`. Le fonctionnement des pages d'erreur (`DEBUG = False`, `ALLOWED_HOSTS`, `runserver --insecure`). Le diagnostic de `/lettings/999/` en 500 et la correction `get_object_or_404`. **La découpe des commentaires à 99 caractères, faite par l'IA à ma demande**, avec une vérification automatique que les 303 mots des commentaires sont restés identiques |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai écrit la `class Meta`, les deux templates d'erreur (la phrase de la
+page 500 venait de l'IA) et les deux `get_object_or_404`. La découpe des commentaires pour flake8
+est de l'IA : un travail de mise en forme sans logique, que je lui ai délégué.
+
+**Effet de bord non anticipé :** en testant ma page 404, j'ai découvert qu'une location inexistante
+faisait **planter** le serveur (500) au lieu de répondre 404. Le test d'une page d'erreur a révélé
+un vrai bug.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
