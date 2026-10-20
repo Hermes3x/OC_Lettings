@@ -1,7 +1,13 @@
 """Views of the lettings application: index and letting."""
 
-from django.shortcuts import get_object_or_404, render
+import logging
+
+from django.http import Http404
+from django.shortcuts import render
+
 from .models import Letting
+
+logger = logging.getLogger(__name__)
 
 
 # Aenean leo magna, vestibulum et tincidunt fermentum, consectetur quis velit. Sed non placerat
@@ -18,6 +24,7 @@ def index(request):
         HttpResponse: the rendered list of lettings.
     """
     lettings_list = Letting.objects.all()
+    logger.info('Lettings list displayed: %s lettings.', len(lettings_list))
     context = {'lettings_list': lettings_list}
 
     return render(request, 'lettings/index.html', context)
@@ -47,7 +54,12 @@ def letting(request, letting_id):
     Raises:
         Http404: if no letting has this id.
     """
-    letting = get_object_or_404(Letting, id=letting_id)
+    try:
+        letting = Letting.objects.get(id=letting_id)
+    except Letting.DoesNotExist:
+        logger.warning('Letting %s not found.', letting_id)
+        raise Http404('Letting not found')
+    logger.info('Letting %s displayed.', letting_id)
     context = {
         'title': letting.title,
         'address': letting.address,

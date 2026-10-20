@@ -1,6 +1,10 @@
 """View of the oc_lettings_site application index."""
 
+import logging
+
 from django.shortcuts import render
+
+logger = logging.getLogger(__name__)
 
 
 # Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque molestie quam lobortis leo
@@ -19,4 +23,5 @@ def index(request):
     Returns:
         HttpResponse: the rendered index welcome page.
     """
+    logger.info('Index displayed')
     return render(request, 'index.html')
