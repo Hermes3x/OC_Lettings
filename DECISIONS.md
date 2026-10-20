@@ -193,3 +193,31 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : dans l'état actuel, le résultat est trompeur. Une couverture compte des lignes exécutées, pas des fonctionnalités vérifiées. Sans les migrations, le pourcentage mesure le code que j'ai écrit et testé : modèles, vues, URLs.
 
 **Ce que ça coûte** : la couverture tombe à 74 %, et il faut de vrais tests pour dépasser 80 %. Les migrations de copie restent vérifiées autrement : par les comptages et les jointures faits à l'étape 1. `manage.py`, `wsgi.py` et `asgi.py` restent comptés, alors qu'aucun test ne les exécute : ce sont les points d'entrée du serveur. Ils plafonnent la couverture atteignable à environ 84 %.
+
+## 2026-10-20 — Où ranger les secrets en local
+
+**La question** : la DSN de Sentry et la `SECRET_KEY` de Django ne doivent pas être écrites dans le code, puisque le dépôt est public. Comment les fournir à l'application en local ?
+
+**Les options envisagées** :
+- (a) un fichier `.env`, lu au démarrage par la bibliothèque `python-dotenv`, et ignoré par git ;
+- (b) des variables d'environnement tapées dans le terminal.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est plus pratique. Les secrets sont écrits une seule fois, au lieu d'être retapés à chaque nouveau terminal.
+
+**Ce que ça coûte** : une bibliothèque de plus, et un fichier à ne jamais commiter : `.env` est ajouté au `.gitignore` **avant** d'être créé. Un fichier `.env.example`, sans valeurs, est versionné pour indiquer au successeur quelles variables fournir. En production, l'hébergeur fournira ces mêmes variables par son propre tableau de bord.
+
+**Conséquence de sécurité** : l'ancienne `SECRET_KEY` a été publiée dans l'historique git du dépôt public. Elle est donc compromise : une nouvelle clé a été générée pour le `.env`. L'ancienne reste visible dans l'historique, mais ne sert plus à rien.
+
+## 2026-10-20 — Langue du README
+
+**La question** : la deuxième décision fixait l'anglais pour le code et le français pour mes fichiers de suivi, mais laissait le README de côté. En quelle langue le mettre à jour ?
+
+**Les options envisagées** : (a) le garder en français ; (b) le traduire en anglais, comme le code.
+
+**Mon choix** : (a).
+
+**Pourquoi** : le README d'origine est en français, et il s'adresse aux développeurs qui reprendront le projet. Le traduire entièrement n'apporterait rien à l'énoncé.
+
+**Ce que ça coûte** : la frontière entre les deux langues n'est plus « machine contre humain » mais « code contre documentation ». La langue de la documentation Sphinx reste à trancher à l'étape 5.

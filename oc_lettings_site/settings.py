@@ -8,6 +8,9 @@ import os
 
 from pathlib import Path
 
+import sentry_sdk
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,8 +18,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
+# Read the local secrets from the .env file, when there is one. Variables that
+# already exist in the environment (on the production server) are not overridden.
+load_dotenv(BASE_DIR / '.env')
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s'
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -123,3 +130,39 @@ STATICFILES_DIRS = [BASE_DIR / "static",]
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# Logging: every message from INFO level upwards is written to the console, with its
+# date, level and origin. In production, the host collects the console output.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{asctime} {levelname} {name}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Sentry: error monitoring, enabled only when a DSN is provided. By default, the SDK
+# sends no personal data (user IP addresses, cookies...).
+SENTRY_DSN = os.environ.get('SENTRY_DSN')
+if SENTRY_DSN:
+    sentry_sdk.init(dsn=SENTRY_DSN)
