@@ -209,3 +209,15 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Ce que ça coûte** : une bibliothèque de plus, et un fichier à ne jamais commiter : `.env` est ajouté au `.gitignore` **avant** d'être créé. Un fichier `.env.example`, sans valeurs, est versionné pour indiquer au successeur quelles variables fournir. En production, l'hébergeur fournira ces mêmes variables par son propre tableau de bord.
 
 **Conséquence de sécurité** : l'ancienne `SECRET_KEY` a été publiée dans l'historique git du dépôt public. Elle est donc compromise : une nouvelle clé a été générée pour le `.env`. L'ancienne reste visible dans l'historique, mais ne sert plus à rien.
+
+## 2026-10-20 — Langue du README
+
+**La question** : la deuxième décision fixait l'anglais pour le code et le français pour mes fichiers de suivi, mais laissait le README de côté. En quelle langue le mettre à jour ?
+
+**Les options envisagées** : (a) le garder en français ; (b) le traduire en anglais, comme le code.
+
+**Mon choix** : (a).
+
+**Pourquoi** : le README d'origine est en français, et il s'adresse aux développeurs qui reprendront le projet. Le traduire entièrement n'apporterait rien à l'énoncé.
+
+**Ce que ça coûte** : la frontière entre les deux langues n'est plus « machine contre humain » mais « code contre documentation ». La langue de la documentation Sphinx reste à trancher à l'étape 5.

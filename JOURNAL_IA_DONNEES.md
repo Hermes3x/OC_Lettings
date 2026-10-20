@@ -198,6 +198,31 @@ fonctionnait, alors que je ne la voyais pas en local (`DEBUG = True`).
 
 ---
 
+## 10. Surveillance : Sentry, `logging` et secrets
+
+| | |
+|---|---|
+| **Demandé** | Brancher Sentry, configurer le `logging`, insérer des logs, et sortir les secrets du code |
+| **Produit** | La différence entre `logging` (ce que mon code raconte) et Sentry (ce qui casse, même sans que je l'aie prévu). Le fichier `.env` (avec une **nouvelle** `SECRET_KEY` : l'ancienne était publiée), `.env.example`, la configuration de `settings.py` (`load_dotenv`, `SECRET_KEY`, `sentry_sdk.init`, `LOGGING`), le motif `getLogger(__name__)` + `try/except` + `WARNING`, et la mise à jour du README |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit la plomberie (le `.env`, la configuration de `settings.py`, le
+bloc `LOGGING`, la rubrique du README) ; je l'ai expliquée ligne par ligne. J'ai inséré moi-même les
+logs dans les trois fichiers de vues, sur l'exemple fourni pour `lettings`.
+
+**Anecdote à raconter en soutenance :** en ajoutant les logs, j'ai tapé `user_username` au lieu de
+`user__username`. Mon test de la fiche profil a déclenché l'erreur, mon `logging` l'a notée en
+`ERROR`, et **Sentry l'a reçue** : un vrai bug a traversé toute la chaîne de surveillance. C'est
+cette erreur qui m'a servi à vérifier que Sentry était opérationnel.
+
+**Effet de bord non anticipé :** l'IA avait écrit que Sentry était désactivé pendant les tests.
+C'était faux : en local, les tests lisent aussi le `.env`. Elle a corrigé son commentaire, et
+c'est justement grâce à ça que l'erreur de test est arrivée dans Sentry. Elle avait aussi utilisé
+une option devenue obsolète (`send_default_pii`), signalée par un avertissement de pytest.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
