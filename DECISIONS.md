@@ -221,3 +221,15 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : le README d'origine est en français, et il s'adresse aux développeurs qui reprendront le projet. Le traduire entièrement n'apporterait rien à l'énoncé.
 
 **Ce que ça coûte** : la frontière entre les deux langues n'est plus « machine contre humain » mais « code contre documentation ». La langue de la documentation Sphinx reste à trancher à l'étape 5.
+
+## 2026-10-20 — Outil du pipeline CI/CD
+
+**La question** : l'énoncé laisse le choix de l'outil qui exécute le pipeline (tests, conteneurisation, déploiement). Lequel ?
+
+**Les options envisagées** : (a) GitHub Actions ; (b) GitLab CI.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est plus simple et plus cohérent. Mon dépôt est déjà sur GitHub : le pipeline vit au même endroit que le code, et ses résultats s'affichent directement sur mes pull requests. GitLab CI aurait demandé un compte de plus et un dépôt miroir.
+
+**Ce que ça coûte** : le pipeline dépend de GitHub. Le passer un jour sur un autre outil demanderait de réécrire son fichier de configuration.
