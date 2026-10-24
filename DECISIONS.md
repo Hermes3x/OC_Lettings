@@ -254,3 +254,21 @@ Exclu d'office : `runserver --insecure` en production, que Django lui-même déc
 **Ce que ça coûte** : WhiteNoise est moins rapide qu'un serveur web spécialisé comme nginx. Si le trafic grossissait beaucoup, il faudrait passer à (b) ou (c). Dans tous les cas, la commande `collectstatic` doit d'abord rassembler tous les fichiers statiques, y compris ceux de l'admin, dans le dossier `staticfiles/`. Ce n'est pas une option : les trois solutions en ont besoin.
 
 **Comment la question est venue** : l'IA avait d'abord ajouté WhiteNoise sans présenter d'alternative. J'ai demandé si c'était la seule solution : la ligne a été retirée, les options m'ont été présentées, puis j'ai tranché.
+
+## 2026-10-24 — Serveur d'application en production
+
+**La question** : `runserver` est réservé au développement. Django le rappelle à chaque lancement : *« Do not use it in a production setting. Use a production WSGI or ASGI server instead. »* Quel serveur fait tourner le site dans le conteneur ?
+
+**Les options envisagées** :
+- (a) gunicorn ;
+- (b) waitress, écrit en pur Python, qui fonctionne aussi sous Windows.
+
+Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce que mon application n'est pas.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est le plus répandu, donc celui qui a le plus de ressources. L'énoncé n'impose aucun outil. Le guide Django de Docker, le guide Django de Render et le cours OpenClassrooms « Déployez une application Django » utilisent tous gunicorn.
+
+**Ce que ça coûte** : gunicorn ne fonctionne pas sous Windows. Je ne peux donc le voir tourner que dans le conteneur, pas directement sur ma machine, où je continue d'utiliser `runserver` pour développer. L'énoncé demande de toute façon de vérifier le conteneur en local avant de le déployer.
+
+**Ce que le cours m'a appris** : il déploie avec Nginx, Gunicorn et Supervisor sur un serveur loué. Dans mon projet, WhiteNoise reprend le service des fichiers statiques (décision précédente), et Render reprend la réception d'Internet et la relance en cas de plantage. Il ne reste que le serveur d'application à choisir.

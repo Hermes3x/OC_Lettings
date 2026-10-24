@@ -223,18 +223,21 @@ une option devenue obsolète (`send_default_pii`), signalée par un avertissemen
 
 ---
 
-## 11. Préparer Django pour la production : `DEBUG`, `ALLOWED_HOSTS`, fichiers statiques
+## 11. Préparer Django pour la production : `DEBUG`, `ALLOWED_HOSTS`, fichiers statiques, serveur
 
 | | |
 |---|---|
 | **Demandé** | Configurer Django pour la production, pas à pas, en m'expliquant chaque ligne. Puis, quand l'IA a ajouté WhiteNoise : est-ce la seule solution ? Comment aurais-je pu la trouver seul ? Pourquoi tout fonctionne aujourd'hui ? |
-| **Produit** | `DEBUG` et `ALLOWED_HOSTS` lus depuis l'environnement, avec `DEBUG` désactivé par défaut. L'explication de la panne : `runserver` ne sert les fichiers statiques que si `DEBUG=True` (la condition est dans le code de Django). Trois options pour les servir (WhiteNoise, nginx, stockage cloud), la ligne `WhiteNoiseMiddleware`, la commande `collectstatic`, `staticfiles/` ajouté au `.gitignore` |
+| **Produit** | `DEBUG` et `ALLOWED_HOSTS` lus depuis l'environnement, avec `DEBUG` désactivé par défaut. L'explication de la panne : `runserver` ne sert les fichiers statiques que si `DEBUG=True` (la condition est dans le code de Django). Trois options pour les servir (WhiteNoise, nginx, stockage cloud), la ligne `WhiteNoiseMiddleware`, la commande `collectstatic`, `staticfiles/` ajouté au `.gitignore`. Pour le serveur : la notion de WSGI (la « prise » de `wsgi.py`), deux options (gunicorn, waitress), et les guides de Docker et de Render qui utilisent gunicorn |
 | **Retenu** | _à remplir_ |
 | **Vérifié** | _à remplir_ |
 
 **Qui a écrit quoi :** l'IA a écrit les lignes de `settings.py` et du `.gitignore`. J'ai choisi
 WhiteNoise parmi les trois options (`DECISIONS.md`, 2026-10-24), installé le paquet, mis à jour
-`requirements.txt` et lancé `collectstatic`.
+`requirements.txt` et lancé `collectstatic`. Pour le serveur, j'ai cherché moi-même une source
+OpenClassrooms : le cours « Déployez une application Django » utilise Nginx, Gunicorn et
+Supervisor. J'ai choisi gunicorn (`DECISIONS.md`, 2026-10-24), et constaté qu'il ne tourne pas
+sous Windows : `No module named 'fcntl'`.
 
 **Anecdote à raconter en soutenance :** l'IA avait ajouté WhiteNoise directement, comme si c'était
 la seule solution. Je lui ai demandé pourquoi, puisque je n'avais vu cet outil ni dans l'énoncé ni
