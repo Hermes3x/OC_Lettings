@@ -223,6 +223,31 @@ une option devenue obsolète (`send_default_pii`), signalée par un avertissemen
 
 ---
 
+## 11. Préparer Django pour la production : `DEBUG`, `ALLOWED_HOSTS`, fichiers statiques
+
+| | |
+|---|---|
+| **Demandé** | Configurer Django pour la production, pas à pas, en m'expliquant chaque ligne. Puis, quand l'IA a ajouté WhiteNoise : est-ce la seule solution ? Comment aurais-je pu la trouver seul ? Pourquoi tout fonctionne aujourd'hui ? |
+| **Produit** | `DEBUG` et `ALLOWED_HOSTS` lus depuis l'environnement, avec `DEBUG` désactivé par défaut. L'explication de la panne : `runserver` ne sert les fichiers statiques que si `DEBUG=True` (la condition est dans le code de Django). Trois options pour les servir (WhiteNoise, nginx, stockage cloud), la ligne `WhiteNoiseMiddleware`, la commande `collectstatic`, `staticfiles/` ajouté au `.gitignore` |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit les lignes de `settings.py` et du `.gitignore`. J'ai choisi
+WhiteNoise parmi les trois options (`DECISIONS.md`, 2026-10-24), installé le paquet, mis à jour
+`requirements.txt` et lancé `collectstatic`.
+
+**Anecdote à raconter en soutenance :** l'IA avait ajouté WhiteNoise directement, comme si c'était
+la seule solution. Je lui ai demandé pourquoi, puisque je n'avais vu cet outil ni dans l'énoncé ni
+dans le cours. Elle a retiré sa ligne, m'a présenté trois options avec leurs coûts, et j'ai tranché.
+L'énoncé nomme bien le problème (« les fichiers statiques doivent correctement se charger en
+production »), mais jamais l'outil : un cahier des charges dit *quoi*, pas *avec quoi*.
+
+**Effet de bord non anticipé :** mon serveur tournait encore quand l'IA a remis la ligne
+WhiteNoise. `runserver` a rechargé `settings.py`, a planté sur `No module named 'whitenoise'`, et
+Sentry a reçu le plantage (`handled: false`). Preuve que Sentry voit aussi les erreurs au démarrage.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
@@ -231,7 +256,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include`.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour.
 
 ---
 
@@ -242,3 +267,5 @@ une partition figée à un instant déterminé » · une migration SQLite s'exé
 - **Refactorisation sans tests automatisés**, faute de temps : l'IA proposait d'écrire des tests
   avant l'étape 1, j'ai choisi l'ordre de l'énoncé. Compensé par des vérifications manuelles
   (comptages avant / après, captures de référence). Voir `DECISIONS.md`, « Plan du projet ».
+- **Fichiers statiques servis par WhiteNoise**, et non par un serveur web dédié : suffisant pour la
+  taille du site, à revoir si le trafic grossit (voir `DECISIONS.md`, 2026-10-24).

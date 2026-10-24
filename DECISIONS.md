@@ -233,3 +233,24 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 **Pourquoi** : c'est plus simple et plus cohérent. Mon dépôt est déjà sur GitHub : le pipeline vit au même endroit que le code, et ses résultats s'affichent directement sur mes pull requests. GitLab CI aurait demandé un compte de plus et un dépôt miroir.
 
 **Ce que ça coûte** : le pipeline dépend de GitHub. Le passer un jour sur un autre outil demanderait de réécrire son fichier de configuration.
+
+## 2026-10-24 — Servir les fichiers statiques en production
+
+**La question** : avec `DEBUG=False`, Django ne sert plus les fichiers statiques (le CSS, les images, le CSS de l'admin). Le site et l'admin s'afficheraient sans mise en forme, alors que l'énoncé exige que « les fichiers statiques [se chargent] correctement en production ». Qui les sert ?
+
+**Constaté avant de choisir** : `DEBUG=False` dans le `.env`, `runserver` sans `--insecure`, page d'accueil ouverte → le terminal affiche `WARNING django.request: Not Found: /static/css/styles.css`. La demande du CSS arrive jusqu'à Django, qui ne trouve aucune route pour elle.
+
+**Les options envisagées** :
+- (a) WhiteNoise, un paquet Python qui intercepte les adresses `/static/...` avant Django, dans la même application ;
+- (b) nginx, un serveur web séparé, placé devant Django ;
+- (c) un stockage cloud (Amazon S3 et un CDN), qui sert les fichiers à la place du site.
+
+Exclu d'office : `runserver --insecure` en production, que Django lui-même déclare lent et peu sûr.
+
+**Mon choix** : (a).
+
+**Pourquoi** : par simplicité, pour la rapidité de mise en place, et parce que c'est adapté à la taille du site.
+
+**Ce que ça coûte** : WhiteNoise est moins rapide qu'un serveur web spécialisé comme nginx. Si le trafic grossissait beaucoup, il faudrait passer à (b) ou (c). Dans tous les cas, la commande `collectstatic` doit d'abord rassembler tous les fichiers statiques, y compris ceux de l'admin, dans le dossier `staticfiles/`. Ce n'est pas une option : les trois solutions en ont besoin.
+
+**Comment la question est venue** : l'IA avait d'abord ajouté WhiteNoise sans présenter d'alternative. J'ai demandé si c'était la seule solution : la ligne a été retirée, les options m'ont été présentées, puis j'ai tranché.
