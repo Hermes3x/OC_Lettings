@@ -251,6 +251,33 @@ Sentry a reçu le plantage (`handled: false`). Preuve que Sentry voit aussi les 
 
 ---
 
+## 12. Conteneuriser : le `Dockerfile` ligne par ligne
+
+| | |
+|---|---|
+| **Demandé** | Écrire le `Dockerfile` pas à pas, en m'expliquant chaque instruction avant de passer à la suivante |
+| **Produit** | Le `Dockerfile` (image de base, `ENV`, `WORKDIR`, `requirements.txt` copié avant le code, `collectstatic` avec une clé jetable, utilisateur `appuser`, `EXPOSE`, `CMD` gunicorn) et le `.dockerignore`. Les notions : image et conteneur, couches et cache, `RUN` contre `CMD`, secrets fournis au lancement, moindre privilège |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit le `Dockerfile` et le `.dockerignore`. J'ai choisi l'image de
+base (Alpine écartée par moi, l'image complète sur conseil de l'IA, validé par moi), le nom de
+l'image (`oc_lettings`) et la correction du canal de pilotage. J'ai reformulé chaque instruction
+avant de passer à la suivante, construit l'image et lancé le conteneur.
+
+**Anecdote à raconter en soutenance :** après une modification de la seule dernière ligne du
+`Dockerfile`, je m'attendais à ce que Docker ne refasse que cette ligne. Il a refait l'étape
+`COPY . .` et toutes les suivantes : le `Dockerfile` fait lui-même partie du dossier copié. Le
+cache se casse à la première étape dont une entrée change, pas à la ligne modifiée.
+
+**Effet de bord non anticipé :** au premier lancement, gunicorn a affiché
+`Control server error: Permission denied: '/home/appuser'`. Erreur de l'IA : elle avait créé
+`appuser` sans dossier personnel, alors que gunicorn (depuis sa version 25.1) y range un canal de
+pilotage. On ne s'en sert jamais dans un conteneur, qu'on remplace au lieu de le réparer : il a été
+désactivé (`--no-control-socket`).
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
@@ -259,7 +286,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour · WSGI = la « prise » standard entre un serveur et une application Python · image (le modèle figé) ≠ conteneur (l'image en marche) · couches et cache : le cache se casse à la première étape dont une entrée change · `RUN` à la construction, `CMD` à chaque lancement · `.dockerignore` · `VARIABLE=valeur commande` (une seule commande) ≠ `ENV` (gravé dans l'image) · `root` (le système) ≠ l'admin Django (une page du site) · `0.0.0.0` = accepter les connexions venues de l'extérieur · `docker run -p port_machine:port_conteneur`.
 
 ---
 

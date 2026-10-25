@@ -272,3 +272,18 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Ce que ça coûte** : gunicorn ne fonctionne pas sous Windows. Je ne peux donc le voir tourner que dans le conteneur, pas directement sur ma machine, où je continue d'utiliser `runserver` pour développer. L'énoncé demande de toute façon de vérifier le conteneur en local avant de le déployer.
 
 **Ce que le cours m'a appris** : il déploie avec Nginx, Gunicorn et Supervisor sur un serveur loué. Dans mon projet, WhiteNoise reprend le service des fichiers statiques (décision précédente), et Render reprend la réception d'Internet et la relance en cas de plantage. Il ne reste que le serveur d'application à choisir.
+
+## 2026-10-24 — Image de base du conteneur
+
+**La question** : une image Docker part toujours d'une image de base. Laquelle ? Elle doit contenir Python 3.14, la version avec laquelle `requirements.txt` a été figé.
+
+**Les options envisagées** :
+- (a) `python:3.14-slim`, un Linux Debian allégé ;
+- (b) `python:3.14-alpine`, un Linux Alpine, le plus léger ;
+- (c) `python:3.14`, un Linux Debian complet, avec les outils de compilation.
+
+**Mon choix** : (a).
+
+**Pourquoi** : j'ai écarté (b) moi-même, pour éviter la recompilation de paquets : Alpine utilise une bibliothèque système différente de Debian. J'ai écarté (c) sur le conseil de l'IA, que j'ai validé : (a) est suffisante, plus légère et moins risquée. Mes paquets sont publiés déjà compilés, donc les outils de compilation de (c) ne serviraient à rien, et chaque outil embarqué est une faille possible de plus.
+
+**Ce que ça coûte** : si un jour j'ajoute un paquet qui doit être compilé, il faudra installer ses outils de compilation dans l'image.

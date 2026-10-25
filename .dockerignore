@@ -1,0 +1,10 @@
+# Never copied into the image: secrets, git history, local environment, generated files.
+.env
+.git
+venv
+staticfiles/
+htmlcov/
+.coverage
+.pytest_cache/
+**/__pycache__
+*.pyc
