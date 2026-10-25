@@ -287,3 +287,42 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : j'ai écarté (b) moi-même, pour éviter la recompilation de paquets : Alpine utilise une bibliothèque système différente de Debian. J'ai écarté (c) sur le conseil de l'IA, que j'ai validé : (a) est suffisante, plus légère et moins risquée. Mes paquets sont publiés déjà compilés, donc les outils de compilation de (c) ne serviraient à rien, et chaque outil embarqué est une faille possible de plus.
 
 **Ce que ça coûte** : si un jour j'ajoute un paquet qui doit être compilé, il faudra installer ses outils de compilation dans l'image.
+
+## 2026-10-25 — Nom et label des images Docker
+
+**La question** : quel nom donner à l'image sur Docker Hub, et comment distinguer ses versions ? Le cahier des charges demande de taguer les images *« avec un label distinct (par exemple, le "hash" de commit) »*.
+
+**Le nom** : `zjon/oc_lettings`. La première partie est imposée par Docker Hub : c'est mon identifiant, `zjon`. La seconde est le nom de mon dépôt, `OC_Lettings`, en minuscules, comme Docker l'impose. Ma raison : la cohérence avec le dépôt.
+
+**Les options envisagées pour le label** :
+- (a) le hash court du commit : `zjon/oc_lettings:c0a0c2e` ;
+- (b) le hash, plus une seconde étiquette `latest` qui désigne toujours la plus récente ;
+- (c) un numéro de version manuel : `v1.0`, `v1.1`… ;
+- (d) le numéro d'exécution du pipeline : `zjon/oc_lettings:12`.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est automatique, et facile à tracer : chaque image renvoie au commit exact qui l'a produite. Il suffit de chercher le label sur GitHub pour retrouver le code, les fichiers et le message du commit.
+
+**Ce que ça coûte** : le label est peu lisible pour un humain, et il n'existe pas d'étiquette « dernière version ». Pour lancer l'image la plus récente, il faut connaître son hash, affiché sur GitHub et sur Docker Hub. J'avais d'abord pensé à un numéro de version (c), l'usage le plus courant. Je l'ai écarté parce qu'il faudrait le changer à la main avant chaque fusion dans `master`, et qu'un oubli donnerait le même numéro à deux images différentes.
+
+**Correction en cours de route** : l'IA avait d'abord affirmé que l'énoncé imposait le hash de commit. En relisant le cahier des charges, ce n'est qu'un exemple : le choix du label était donc bien une décision à prendre.
+
+## 2026-10-25 — Ce qui entre dans l'image Docker
+
+**La question** : quels fichiers du dépôt copier dans l'image ? L'instruction `COPY . .` du Dockerfile copie tout ce que `.dockerignore` n'exclut pas. Y partaient donc `DECISIONS.md`, le journal de l'IA, le README et les fichiers de configuration des outils (`setup.cfg`, `.coveragerc`), dont le site n'a pas besoin pour tourner.
+
+**Comment la question est venue** : je l'ai soulevée moi-même. Pour justifier de commiter avant de construire l'image, l'IA avait écrit : « sinon l'image contiendrait l'entrée 19 de `DECISIONS.md` ». J'ai objecté que ce fichier n'avait rien à faire dans l'image. L'IA a reconnu que son exemple était mauvais. La vraie raison de commiter d'abord : le label annonce « cette image = tel commit ». Un fichier utile au site, modifié mais pas encore commité, rendrait ce label faux.
+
+**Les options envisagées** :
+- (a) une liste noire : exclure ces fichiers un par un, par leur nom ;
+- (b) une liste blanche : tout exclure (`*`), puis n'autoriser que ce qui sert au site ;
+- (c) ne rien changer : quelques Ko, aucun secret.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est plus propre et plus sécurisé. Seul ce qui sert au site entre dans l'image. Un fichier ajouté au dépôt plus tard, même un fichier secret oublié, reste dehors par défaut.
+
+**Ce que ça coûte** : une nouvelle application ajoutée plus tard devra être autorisée à la main dans `.dockerignore`. Si on l'oublie, la construction de l'image échoue au moment de `collectstatic`, parce que Django ne trouve pas une application déclarée dans `INSTALLED_APPS`. L'erreur se voit tout de suite.
+
+**Conséquence** : les fichiers `tests.py` se trouvent dans les dossiers d'application autorisés. Ils sont exclus à nouveau, puisqu'ils ne servent pas au site : les tests tournent dans le pipeline, pas dans l'image.

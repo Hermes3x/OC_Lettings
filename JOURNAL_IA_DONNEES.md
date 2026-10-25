@@ -276,6 +276,13 @@ cache se casse à la première étape dont une entrée change, pas à la ligne m
 pilotage. On ne s'en sert jamais dans un conteneur, qu'on remplace au lieu de le réparer : il a été
 désactivé (`--no-control-socket`).
 
+**Désaccord avec l'IA :** pour me faire commiter avant de construire, l'IA a écrit « sinon l'image
+contiendrait l'entrée 19 de `DECISIONS.md` ». J'ai objecté que les décisions et le journal n'avaient
+rien à faire dans l'image. C'était vrai : son `.dockerignore` excluait seulement les secrets et les
+fichiers générés, donc toutes les notes du projet partaient dans l'image. Elle a reconnu l'erreur
+et m'a présenté trois options. J'ai choisi la liste blanche, parce qu'elle est « plus propre et plus
+sécurisée » (décision 20). L'IA a réécrit le `.dockerignore` dans ce sens.
+
 ---
 
 ## Notions apprises en cours de route

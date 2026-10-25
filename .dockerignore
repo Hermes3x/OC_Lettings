@@ -1,10 +1,18 @@
-# Never copied into the image: secrets, git history, local environment, generated files.
-.env
-.git
-venv
-staticfiles/
-htmlcov/
-.coverage
-.pytest_cache/
+# Whitelist: exclude everything, then let in only what the site needs to run.
+# Secrets (.env), git history, the local venv and the project notes stay out by default.
+*
+
+# The Django project, its two applications, the database and the files they serve.
+!manage.py
+!requirements.txt
+!oc-lettings-site.sqlite3
+!oc_lettings_site/
+!lettings/
+!profiles/
+!templates/
+!static/
+
+# Inside the allowed folders: tests run in the pipeline, not in the image; no Python cache.
+**/tests.py
 **/__pycache__
-*.pyc
+**/*.pyc
