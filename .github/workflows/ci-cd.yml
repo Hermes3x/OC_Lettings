@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # The token goes through standard input, never on the command line.
-      - run: echo "$DOCKERHUB_TOKEN" | docker login -u zjon --password-stdin
+      - run: echo "$DOCKERHUB_TOKEN_CICL_OC_LETTINGS" | docker login -u zjon --password-stdin
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       # Label = short commit hash, the same 7 characters as git log --oneline.
