@@ -223,6 +223,137 @@ une option devenue obsolète (`send_default_pii`), signalée par un avertissemen
 
 ---
 
+## 11. Préparer Django pour la production : `DEBUG`, `ALLOWED_HOSTS`, fichiers statiques, serveur
+
+| | |
+|---|---|
+| **Demandé** | Configurer Django pour la production, pas à pas, en m'expliquant chaque ligne. Puis, quand l'IA a ajouté WhiteNoise : est-ce la seule solution ? Comment aurais-je pu la trouver seul ? Pourquoi tout fonctionne aujourd'hui ? |
+| **Produit** | `DEBUG` et `ALLOWED_HOSTS` lus depuis l'environnement, avec `DEBUG` désactivé par défaut. L'explication de la panne : `runserver` ne sert les fichiers statiques que si `DEBUG=True` (la condition est dans le code de Django). Trois options pour les servir (WhiteNoise, nginx, stockage cloud), la ligne `WhiteNoiseMiddleware`, la commande `collectstatic`, `staticfiles/` ajouté au `.gitignore`. Pour le serveur : la notion de WSGI (la « prise » de `wsgi.py`), deux options (gunicorn, waitress), et les guides de Docker et de Render qui utilisent gunicorn |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit les lignes de `settings.py` et du `.gitignore`. J'ai choisi
+WhiteNoise parmi les trois options (`DECISIONS.md`, 2026-10-24), installé le paquet, mis à jour
+`requirements.txt` et lancé `collectstatic`. Pour le serveur, j'ai cherché moi-même une source
+OpenClassrooms : le cours « Déployez une application Django » utilise Nginx, Gunicorn et
+Supervisor. J'ai choisi gunicorn (`DECISIONS.md`, 2026-10-24), et constaté qu'il ne tourne pas
+sous Windows : `No module named 'fcntl'`.
+
+**Anecdote à raconter en soutenance :** l'IA avait ajouté WhiteNoise directement, comme si c'était
+la seule solution. Je lui ai demandé pourquoi, puisque je n'avais vu cet outil ni dans l'énoncé ni
+dans le cours. Elle a retiré sa ligne, m'a présenté trois options avec leurs coûts, et j'ai tranché.
+L'énoncé nomme bien le problème (« les fichiers statiques doivent correctement se charger en
+production »), mais jamais l'outil : un cahier des charges dit *quoi*, pas *avec quoi*.
+
+**Effet de bord non anticipé :** mon serveur tournait encore quand l'IA a remis la ligne
+WhiteNoise. `runserver` a rechargé `settings.py`, a planté sur `No module named 'whitenoise'`, et
+Sentry a reçu le plantage (`handled: false`). Preuve que Sentry voit aussi les erreurs au démarrage.
+
+---
+
+## 12. Conteneuriser : le `Dockerfile` ligne par ligne
+
+| | |
+|---|---|
+| **Demandé** | Écrire le `Dockerfile` pas à pas, en m'expliquant chaque instruction avant de passer à la suivante |
+| **Produit** | Le `Dockerfile` (image de base, `ENV`, `WORKDIR`, `requirements.txt` copié avant le code, `collectstatic` avec une clé jetable, utilisateur `appuser`, `EXPOSE`, `CMD` gunicorn) et le `.dockerignore`. Les notions : image et conteneur, couches et cache, `RUN` contre `CMD`, secrets fournis au lancement, moindre privilège |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit le `Dockerfile` et le `.dockerignore`. J'ai choisi l'image de
+base (Alpine écartée par moi, l'image complète sur conseil de l'IA, validé par moi), le nom de
+l'image (`oc_lettings`) et la correction du canal de pilotage. J'ai reformulé chaque instruction
+avant de passer à la suivante, construit l'image et lancé le conteneur.
+
+**Anecdote à raconter en soutenance :** après une modification de la seule dernière ligne du
+`Dockerfile`, je m'attendais à ce que Docker ne refasse que cette ligne. Il a refait l'étape
+`COPY . .` et toutes les suivantes : le `Dockerfile` fait lui-même partie du dossier copié. Le
+cache se casse à la première étape dont une entrée change, pas à la ligne modifiée.
+
+**Effet de bord non anticipé :** au premier lancement, gunicorn a affiché
+`Control server error: Permission denied: '/home/appuser'`. Erreur de l'IA : elle avait créé
+`appuser` sans dossier personnel, alors que gunicorn (depuis sa version 25.1) y range un canal de
+pilotage. On ne s'en sert jamais dans un conteneur, qu'on remplace au lieu de le réparer : il a été
+désactivé (`--no-control-socket`).
+
+**Désaccord avec l'IA :** pour me faire commiter avant de construire, l'IA a écrit « sinon l'image
+contiendrait l'entrée 19 de `DECISIONS.md` ». J'ai objecté que les décisions et le journal n'avaient
+rien à faire dans l'image. C'était vrai : son `.dockerignore` excluait seulement les secrets et les
+fichiers générés, donc toutes les notes du projet partaient dans l'image. Elle a reconnu l'erreur
+et m'a présenté trois options. J'ai choisi la liste blanche, parce qu'elle est « plus propre et plus
+sécurisée » (décision 20). L'IA a réécrit le `.dockerignore` dans ce sens.
+
+---
+
+## 13. Pipeline CI/CD : le job `test`
+
+| | |
+|---|---|
+| **Demandé** | Écrire le pipeline GitHub Actions pas à pas : me présenter les options **avant** chaque choix, puis m'expliquer chaque ligne |
+| **Produit** | `.github/workflows/ci-cd.yml` : déclencheurs `push` + `pull_request`, job `test` sur `ubuntu-24.04` (copie du dépôt, Python 3.14, `pip install`, `flake8`, `pytest --cov --cov-fail-under=80` avec une clé factice). Les options de six décisions (22 à 27). Les notions : pré-fusion d'une pull request, `uses` / `with` / `run`, arrondi du seuil de couverture |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit `ci-cd.yml` et rédigé les entrées 22 à 27 de `DECISIONS.md`. J'ai
+pris les six décisions : déclencheurs, nom du fichier, noms des travaux, système du runner, clé
+des tests, seuil de couverture. J'ai reformulé le fichier avant le premier push. L'IA a lancé
+flake8 et pytest en local avec les commandes du pipeline avant ce push.
+
+**Effet de bord non anticipé :** au premier passage, les 17 tests sont verts, mais pytest affiche
+8 avertissements de WhiteNoise : `No directory at: …/staticfiles/`. Personne n'a lancé
+`collectstatic` sur la machine de GitHub. L'IA l'avait prédit. J'ai choisi d'ajouter l'étape
+`collectstatic` au pipeline (décision 28) : 0 avertissement au passage suivant.
+
+**Anecdote à raconter en soutenance :** le premier essai du travail `build` échoue sur
+`Cannot perform an interactive login from a non TTY device`. Ce n'était pas un mauvais jeton :
+Docker n'avait rien reçu, et voulait demander le mot de passe au clavier, sur une machine qui n'en
+a pas. Le jeton était vide, parce que le nom du secret dans le fichier ne correspondait pas au nom
+que j'avais donné dans les réglages de GitHub. Ma première correction a changé le mauvais nom.
+Il y en a trois qui forment une chaîne : le nom du secret dans GitHub, la variable créée pour
+l'étape, et `$variable` dans la commande, qui doit lire exactement cette variable. Troisième essai :
+`Login Succeeded`, image poussée sur Docker Hub avec le label `cfaa7ee`.
+
+---
+
+## 14. Mise en ligne : le compte admin
+
+| | |
+|---|---|
+| **Demandé** | Me présenter les options pour le compte `admin` avant de mettre le site en ligne |
+| **Produit** | Trois options : changer le mot de passe en local, créer l'admin au démarrage depuis des variables d'environnement, ou garder `Abc1234!`. Une recommandation : la première. Les sources : le cahier des charges et l'OWASP. La nouvelle rubrique « Panel d'administration » du README |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Désaccord avec l'IA :** j'ai d'abord choisi de garder `Abc1234!`, pour deux raisons : sans
+mot de passe dans le README, le développeur suivant n'aurait plus accès à l'admin, et le cahier
+des charges ne disait rien. L'IA a contesté les deux, sources à l'appui. Le cahier des charges en
+parle : *« toute autre donnée sensible […] Cela est valable également pour toutes les données
+sensibles du site »*. Un développeur crée son propre compte en local avec `createsuperuser`. Et le
+mot de passe de production se transmet comme mes autres secrets, dont aucun n'est dans le README.
+Elle m'a aussi rappelé ma propre phrase du 6 octobre : « la sécurité prime sur le confort, même
+celui d'un CTO ». J'ai changé d'avis : je change le mot de passe, pour la sécurité et pour me
+conformer à l'OWASP (A05:2021, comptes par défaut jamais changés). Ce qui restait juste dans mon
+objection, l'accès du successeur, est maintenant écrit dans le README.
+
+**Problèmes rencontrés à la création du service Render :**
+- J'ai d'abord gardé le nom proposé par Render, celui de l'image avec son label
+  (`oc_lettings:d05ce53`). Or le nom du service ne change plus, alors que l'image change à chaque
+  déploiement. Je l'ai changé pour `oc_lettings` avant le premier déploiement.
+- Une adresse web ne peut pas contenir de `_` : Render en a fait `oc-lettings`, et comme le nom
+  était déjà pris, il a ajouté un suffixe, ce qui donne `oc-lettings-rmfb.onrender.com`. Django
+  ne sait même pas lire une adresse avec un `_` (vérifié par l'IA dans mon `venv`).
+- Toutes les pages répondaient `400 Bad Request` : j'avais mis `https://` dans `ALLOWED_HOSTS`.
+  Ce réglage attend un nom de domaine seul. Corrigé, le site répond.
+
+**Prédiction fausse de l'IA :** elle annonçait un refus à la connexion admin (*CSRF verification
+failed. Origin checking failed*), parce que derrière un hébergeur, Django croit souvent que le
+visiteur est en HTTP alors qu'il est en HTTPS. Elle l'a testé avec un faux identifiant : un
+formulaire envoyé depuis `https://…` est accepté, le même depuis `http://…` est refusé (403).
+Django sait donc que le visiteur est en HTTPS. Elle a reconnu son erreur ; la cause exacte
+(probablement un proxy local auquel gunicorn fait confiance) n'est pas prouvée.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
@@ -231,7 +362,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include`.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour · WSGI = la « prise » standard entre un serveur et une application Python · image (le modèle figé) ≠ conteneur (l'image en marche) · couches et cache : le cache se casse à la première étape dont une entrée change · `RUN` à la construction, `CMD` à chaque lancement · `.dockerignore` · `VARIABLE=valeur commande` (une seule commande) ≠ `ENV` (gravé dans l'image) · `root` (le système) ≠ l'admin Django (une page du site) · `0.0.0.0` = accepter les connexions venues de l'extérieur · `docker run -p port_machine:port_conteneur` · un commit reste sur ma machine, c'est le push qui déclenche le pipeline · pull request = test du résultat de la fusion **avant** de fusionner · `uses` (l'action d'un autre) / `with` (ses réglages) / `run` (ma commande) · `--cov-fail-under` arrondit avant de comparer.
 
 ---
 
@@ -242,3 +373,9 @@ une partition figée à un instant déterminé » · une migration SQLite s'exé
 - **Refactorisation sans tests automatisés**, faute de temps : l'IA proposait d'écrire des tests
   avant l'étape 1, j'ai choisi l'ordre de l'énoncé. Compensé par des vérifications manuelles
   (comptages avant / après, captures de référence). Voir `DECISIONS.md`, « Plan du projet ».
+- **Fichiers statiques servis par WhiteNoise**, et non par un serveur web dédié : suffisant pour la
+  taille du site, à revoir si le trafic grossit (voir `DECISIONS.md`, 2026-10-24).
+- **Les données écrites en production ne durent pas** : la base SQLite est dans l'image, et Render
+  repart de l'image à chaque redéploiement, redémarrage ou mise en veille. Choix assumé pour
+  rester dans le périmètre de la refactorisation (voir `DECISIONS.md`, 2026-10-26). C'est moi qui ai
+  soulevé la question ; l'IA a vérifié le comportement de Render dans sa documentation.

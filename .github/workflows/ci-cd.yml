@@ -1,0 +1,52 @@
+# Pipeline CI/CD: lint, tests and coverage on every branch; Docker image and deployment on master only.
+name: CI/CD
+
+# Every push, on any branch, plus every pull request (tests the merge result before merging).
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Compilation and tests, on every branch.
+  test:
+    runs-on: ubuntu-24.04
+    # Fake key on purpose: collectstatic and the tests sign nothing that matters.
+    env:
+      SECRET_KEY: fake-key-for-ci-tests
+    steps:
+      # The runner starts empty: copy the repository onto it.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - run: pip install -r requirements.txt
+      - run: flake8
+      # Same conditions as production: the Dockerfile also collects the static files.
+      - run: python manage.py collectstatic --noinput
+      # Fails below 80 % coverage.
+      - run: pytest --cov --cov-fail-under=80
+
+  # Containerization, on master only: build the image and push it to Docker Hub.
+  build:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      # The token goes through standard input, never on the command line.
+      - run: echo "$DOCKERHUB_TOKEN" | docker login -u zjon --password-stdin
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Label = short commit hash, the same 7 characters as git log --oneline.
+      - run: docker build -t zjon/oc_lettings:${GITHUB_SHA::7} .
+      - run: docker push zjon/oc_lettings:${GITHUB_SHA::7}
+
+  # Deployment: ask Render to run the image that was just pushed. Skipped whenever build is skipped.
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      # The hook URL is a secret: anyone who has it can redeploy the site.
+      - run: curl -fsS --get --data-urlencode "imgURL=docker.io/zjon/oc_lettings:${GITHUB_SHA::7}" "$RENDER_DEPLOY_HOOK"
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
