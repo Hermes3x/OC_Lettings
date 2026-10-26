@@ -449,3 +449,63 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : pour tester les choses comme elles sont réellement, et ne pas être pollué par des avertissements qu'on peut enlever proprement. Le Dockerfile lance lui aussi `collectstatic` : les tests tournent dans les mêmes conditions que la production. C'est le principe de parité entre développement et production des [Twelve-Factor Apps](https://12factor.net/dev-prod-parity) : « Keep development, staging, and production as similar as possible ». (c) cachait le symptôme sans traiter la cause, et la façon propre de le faire passait par `setup.cfg`, qu'on n'a pas le droit de modifier.
 
 **Ce que ça coûte** : une étape de plus, environ une seconde. `collectstatic` charge `settings.py`, donc il a besoin de la clé factice : la variable `SECRET_KEY` (décision du même jour) est remontée au niveau du travail et sert à toutes ses étapes. Elle est factice, donc sans risque.
+
+## 2026-10-26 — Identifiant Docker Hub confié au pipeline
+
+**La question** : pour pousser l'image, la machine de GitHub doit s'identifier comme moi auprès de Docker Hub. Quel identifiant lui confier ? Il sera rangé dans les secrets du dépôt, puisque `ci-cd.yml` est public.
+
+**Les options envisagées** (niveaux de la [documentation Docker](https://docs.docker.com/security/access-tokens/reference/)) :
+- (a) le mot de passe du compte Docker Hub ;
+- (b) un jeton d'accès personnel « Repo Read & Write » : télécharger et pousser des images, rien de plus ;
+- (c) un jeton « Repo Read, Write, Delete » : en plus, supprimer des images et gérer les dépôts.
+
+**Mon choix** : (b).
+
+**Pourquoi** : il n'y a pas besoin de supprimer. Le pipeline ne fait que pousser : on ne lui donne que ce droit-là. C'est le principe du moindre privilège : si le jeton fuit, l'attaque rapporte le moins possible. Le mot de passe (a) ouvrait tout le compte, et un jeton se révoque sans toucher au compte.
+
+**Ce que ça coûte** : un jeton qui fuit permet encore de pousser une fausse image sous mon nom. Le risque est réduit, pas supprimé : le jeton ne vit que dans les secrets GitHub, et je peux le révoquer à tout moment.
+
+## 2026-10-26 — Durée de validité du jeton Docker Hub
+
+**La question** : combien de temps le jeton du pipeline reste-t-il valable ? Une fois le jeton créé, sa date ne se modifie plus : il faut en créer un nouveau.
+
+**Les options envisagées** :
+- (a) aucune expiration (le réglage par défaut) ;
+- (b) 90 jours ;
+- (c) 30 jours ;
+- (d) une date choisie, un an au plus.
+
+**Mon choix** : (c) 30 jours, jusqu'au 25 novembre 2026.
+
+**Pourquoi** : c'est ce qui me paraît le plus sécurisé. Plus la durée est courte, moins un jeton qui aurait fui reste utilisable longtemps.
+
+**Ce que ça coûte** : à l'expiration, le travail `build` échoue à la connexion à Docker Hub, et rien ne se déploie. Il faut alors créer un nouveau jeton et remplacer le secret. La procédure est écrite dans la section « Déploiement » du README, pour qu'un successeur puisse la suivre seul.
+
+## 2026-10-26 — Comment le pipeline construit et pousse l'image
+
+**La question** : le travail `build` doit se connecter à Docker Hub, construire l'image et la pousser. Avec quels outils ?
+
+**Les options envisagées** :
+- (a) les actions officielles de Docker (`docker/login-action`, `docker/build-push-action`), qui gardent un cache entre deux exécutions ;
+- (b) mes propres commandes en `run:` : `docker login`, `docker build`, `docker push`, celles que j'ai tapées à la main pour la première image.
+
+**Mon choix** : (b).
+
+**Pourquoi** (raison proposée par l'IA, que j'ai reprise) : le pipeline exécute les commandes que je tapais à la main. Je peux expliquer chaque mot, et le journal du pipeline montre les mêmes lignes que mon terminal. Le gain de (a) se compte en secondes, et la démo ne change que le titre d'une page.
+
+**Ce que ça coûte** : pas de cache, donc l'image est reconstruite entièrement à chaque exécution.
+
+## 2026-10-26 — Tester le travail `build` avant de fusionner
+
+**La question** : le travail `build` ne tourne que sur `master`. Comment le tester avant de fusionner ?
+
+**Les options envisagées** :
+- (a) fusionner, et regarder sur `master` ;
+- (b) ouvrir temporairement la condition à ma branche `step-4-cicd`, vérifier, puis la retirer avant la fusion ;
+- (c) relancer les commandes à la main sur ma machine.
+
+**Mon choix** : (b).
+
+**Pourquoi** : pour pouvoir tester le jeton Docker Hub. Je n'étais pas sûr d'avoir copié la bonne valeur, et seul le pipeline peut le vérifier : le secret n'existe que sur GitHub. (a) aurait laissé un échec possible sur `master`, visible dans l'historique public des builds. (c) ne testait ni le secret ni le hash fourni par GitHub.
+
+**Ce que ça coûte** : deux commits de plus, et une image poussée depuis un commit de ma branche, pas de `master`. Le risque est d'oublier de retirer la condition : elle est marquée `TEMPORARY` dans le fichier, et elle doit être retirée avant la fusion.

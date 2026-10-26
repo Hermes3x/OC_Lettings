@@ -25,3 +25,19 @@ jobs:
       - run: python manage.py collectstatic --noinput
       # Fails below 80 % coverage.
       - run: pytest --cov --cov-fail-under=80
+
+  # Containerization, on master only: build the image and push it to Docker Hub.
+  build:
+    needs: test
+    # TEMPORARY: step-4-cicd allowed to test the job before merging. Remove before the merge.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/step-4-cicd')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      # The token goes through standard input, never on the command line.
+      - run: echo "$DOCKERHUB_TOKEN" | docker login -u zjon --password-stdin
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Label = short commit hash, the same 7 characters as git log --oneline.
+      - run: docker build -t zjon/oc_lettings:${GITHUB_SHA::7} .
+      - run: docker push zjon/oc_lettings:${GITHUB_SHA::7}
