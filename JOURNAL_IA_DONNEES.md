@@ -299,6 +299,42 @@ pris les six décisions : déclencheurs, nom du fichier, noms des travaux, syst�
 des tests, seuil de couverture. J'ai reformulé le fichier avant le premier push. L'IA a lancé
 flake8 et pytest en local avec les commandes du pipeline avant ce push.
 
+**Effet de bord non anticipé :** au premier passage, les 17 tests sont verts, mais pytest affiche
+8 avertissements de WhiteNoise : `No directory at: …/staticfiles/`. Personne n'a lancé
+`collectstatic` sur la machine de GitHub. L'IA l'avait prédit. J'ai choisi d'ajouter l'étape
+`collectstatic` au pipeline (décision 28) : 0 avertissement au passage suivant.
+
+**Anecdote à raconter en soutenance :** le premier essai du travail `build` échoue sur
+`Cannot perform an interactive login from a non TTY device`. Ce n'était pas un mauvais jeton :
+Docker n'avait rien reçu, et voulait demander le mot de passe au clavier, sur une machine qui n'en
+a pas. Le jeton était vide, parce que le nom du secret dans le fichier ne correspondait pas au nom
+que j'avais donné dans les réglages de GitHub. Ma première correction a changé le mauvais nom.
+Il y en a trois qui forment une chaîne : le nom du secret dans GitHub, la variable créée pour
+l'étape, et `$variable` dans la commande, qui doit lire exactement cette variable. Troisième essai :
+`Login Succeeded`, image poussée sur Docker Hub avec le label `cfaa7ee`.
+
+---
+
+## 14. Mise en ligne : le compte admin
+
+| | |
+|---|---|
+| **Demandé** | Me présenter les options pour le compte `admin` avant de mettre le site en ligne |
+| **Produit** | Trois options : changer le mot de passe en local, créer l'admin au démarrage depuis des variables d'environnement, ou garder `Abc1234!`. Une recommandation : la première. Les sources : le cahier des charges et l'OWASP. La nouvelle rubrique « Panel d'administration » du README |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Désaccord avec l'IA :** j'ai d'abord choisi de garder `Abc1234!`, pour deux raisons : sans
+mot de passe dans le README, le développeur suivant n'aurait plus accès à l'admin, et le cahier
+des charges ne disait rien. L'IA a contesté les deux, sources à l'appui. Le cahier des charges en
+parle : *« toute autre donnée sensible […] Cela est valable également pour toutes les données
+sensibles du site »*. Un développeur crée son propre compte en local avec `createsuperuser`. Et le
+mot de passe de production se transmet comme mes autres secrets, dont aucun n'est dans le README.
+Elle m'a aussi rappelé ma propre phrase du 6 octobre : « la sécurité prime sur le confort, même
+celui d'un CTO ». J'ai changé d'avis : je change le mot de passe, pour la sécurité et pour me
+conformer à l'OWASP (A05:2021, comptes par défaut jamais changés). Ce qui restait juste dans mon
+objection, l'accès du successeur, est maintenant écrit dans le README.
+
 ---
 
 ## Notions apprises en cours de route

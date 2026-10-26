@@ -85,8 +85,12 @@ Chaque environnement (poste de développement, production) doit avoir **sa propr
 
 #### Panel d'administration
 
-- Aller sur `http://localhost:8000/admin`
-- Connectez-vous avec l'utilisateur `admin`, mot de passe `Abc1234!`
+- Créer votre propre compte administrateur : `python manage.py createsuperuser`. Cela modifie
+  `oc-lettings-site.sqlite3` : ne commitez pas ce changement (`git restore oc-lettings-site.sqlite3`
+  pour l'annuler).
+- Aller sur `http://localhost:8000/admin` et se connecter avec ce compte.
+- Le compte `admin` fourni dans la base n'a pas de mot de passe public : pour l'environnement de
+  production, le mot de passe est transmis par le responsable du projet.
 
 ### Windows
 

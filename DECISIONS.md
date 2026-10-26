@@ -509,3 +509,20 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : pour pouvoir tester le jeton Docker Hub. Je n'étais pas sûr d'avoir copié la bonne valeur, et seul le pipeline peut le vérifier : le secret n'existe que sur GitHub. (a) aurait laissé un échec possible sur `master`, visible dans l'historique public des builds. (c) ne testait ni le secret ni le hash fourni par GitHub.
 
 **Ce que ça coûte** : deux commits de plus, et une image poussée depuis un commit de ma branche, pas de `master`. Le risque est d'oublier de retirer la condition : elle est marquée `TEMPORARY` dans le fichier, et elle doit être retirée avant la fusion.
+
+## 2026-10-26 — Le compte admin avant la mise en ligne
+
+**La question** : la base versionnée contient un seul compte qui a accès à l'admin, `admin`, et son mot de passe `Abc1234!` est écrit en clair dans le README public. La base part dans l'image, et l'image va être mise en ligne à une adresse publique. Que faire de ce compte ?
+
+**Les options envisagées** :
+- (a) changer le mot de passe en local (`python manage.py changepassword admin`), avec un mot de passe long et aléatoire, commiter la base, et retirer le mot de passe du README ;
+- (b) ne laisser aucun mot de passe dans la base, et créer l'admin au démarrage du conteneur à partir de variables d'environnement réglées chez l'hébergeur ;
+- (c) garder `Abc1234!`.
+
+**Mon choix** : (a).
+
+**Pourquoi** : pour la sécurité, et pour me conformer à l'OWASP. Le Top 10 classe ce cas en A05:2021 « Security Misconfiguration » : *« Default accounts and their passwords are still enabled and unchanged »*. Le cahier des charges le demande aussi : *« ne pas stocker les identifiants Sentry ou toute autre donnée sensible dans le code source […]. Cela est valable également pour toutes les données sensibles du site. »* (b) est plus stricte, mais elle demandait un script de démarrage de plus, à quelques jours de la fin.
+
+**Comment j'y suis arrivé** : j'ai d'abord choisi (c), pour deux raisons : sans mot de passe dans le README, le développeur suivant n'aurait plus accès à l'admin, et le cahier des charges ne disait rien. L'IA m'a montré que les deux étaient fausses. Le cahier des charges en parle (citation ci-dessus). Et un développeur crée son propre compte en local avec `createsuperuser`, tandis que le mot de passe de production se transmet comme mes autres secrets (`SECRET_KEY`, Sentry, jeton Docker Hub), dont aucun n'est dans le README.
+
+**Ce que ça coûte** : l'empreinte du nouveau mot de passe est publique, dans le dépôt et dans l'image. Django 5.2 la calcule avec 1 000 000 d'itérations et un sel : avec un mot de passe aléatoire, la retrouver est hors de portée. Je dois garder ce mot de passe dans un endroit sûr. L'ancien reste lisible dans l'historique git, mais il ne fonctionne plus.
