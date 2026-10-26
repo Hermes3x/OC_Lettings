@@ -434,3 +434,18 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : on respecte l'énoncé, le cahier des charges.
 
 **Ce que ça coûte** : à la lettre, le pipeline accepte 80 % pile, et même 79,6 % à cause de l'arrondi, alors que l'énoncé dit « > 80 % ». La couverture réelle (87 %) est au-dessus, mais le pipeline, lui, ne garantit que « 80 % arrondi ». (c) a été écartée : avec 2 points de marge, tout code ajouté sans tests aurait pu bloquer le pipeline.
+
+## 2026-10-26 — Avertissements WhiteNoise dans le pipeline
+
+**La question** : au premier passage du pipeline, les 17 tests passent, mais pytest affiche 8 avertissements identiques : `No directory at: …/staticfiles/`. WhiteNoise cherche le dossier que remplit `collectstatic`, et personne ne l'a lancé sur la machine de GitHub. Que faire ?
+
+**Les options envisagées** :
+- (a) les laisser : ils ne cassent rien ;
+- (b) lancer `collectstatic` dans le pipeline, avant les tests ;
+- (c) masquer l'avertissement par une option de pytest.
+
+**Mon choix** : (b).
+
+**Pourquoi** : pour tester les choses comme elles sont réellement, et ne pas être pollué par des avertissements qu'on peut enlever proprement. Le Dockerfile lance lui aussi `collectstatic` : les tests tournent dans les mêmes conditions que la production. C'est le principe de parité entre développement et production des [Twelve-Factor Apps](https://12factor.net/dev-prod-parity) : « Keep development, staging, and production as similar as possible ». (c) cachait le symptôme sans traiter la cause, et la façon propre de le faire passait par `setup.cfg`, qu'on n'a pas le droit de modifier.
+
+**Ce que ça coûte** : une étape de plus, environ une seconde. `collectstatic` charge `settings.py`, donc il a besoin de la clé factice : la variable `SECRET_KEY` (décision du même jour) est remontée au niveau du travail et sert à toutes ses étapes. Elle est factice, donc sans risque.

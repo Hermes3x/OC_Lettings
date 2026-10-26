@@ -10,6 +10,9 @@ jobs:
   # Compilation and tests, on every branch.
   test:
     runs-on: ubuntu-24.04
+    # Fake key on purpose: collectstatic and the tests sign nothing that matters.
+    env:
+      SECRET_KEY: fake-key-for-ci-tests
     steps:
       # The runner starts empty: copy the repository onto it.
       - uses: actions/checkout@v7
@@ -18,7 +21,7 @@ jobs:
           python-version: '3.14'
       - run: pip install -r requirements.txt
       - run: flake8
-      # Fails below 80 % coverage. The key is fake on purpose: the tests sign nothing that matters.
+      # Same conditions as production: the Dockerfile also collects the static files.
+      - run: python manage.py collectstatic --noinput
+      # Fails below 80 % coverage.
       - run: pytest --cov --cov-fail-under=80
-        env:
-          SECRET_KEY: fake-key-for-ci-tests
