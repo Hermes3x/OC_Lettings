@@ -526,3 +526,44 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Comment j'y suis arrivé** : j'ai d'abord choisi (c), pour deux raisons : sans mot de passe dans le README, le développeur suivant n'aurait plus accès à l'admin, et le cahier des charges ne disait rien. L'IA m'a montré que les deux étaient fausses. Le cahier des charges en parle (citation ci-dessus). Et un développeur crée son propre compte en local avec `createsuperuser`, tandis que le mot de passe de production se transmet comme mes autres secrets (`SECRET_KEY`, Sentry, jeton Docker Hub), dont aucun n'est dans le README.
 
 **Ce que ça coûte** : l'empreinte du nouveau mot de passe est publique, dans le dépôt et dans l'image. Django 5.2 la calcule avec 1 000 000 d'itérations et un sel : avec un mot de passe aléatoire, la retrouver est hors de portée. Je dois garder ce mot de passe dans un endroit sûr. L'ancien reste lisible dans l'historique git, mais il ne fonctionne plus.
+
+## 2026-10-26 — Hébergeur
+
+**La question** : le cahier des charges demande un travail de déploiement *« en utilisant un hébergeur que vous devrez choisir, comme Render, AWS webapp, Azure, etc. »*. Lequel ?
+
+**Les options envisagées** :
+- (a) Render ;
+- (b) AWS ;
+- (c) Azure.
+
+**Mon choix** : (a) Render.
+
+**Pourquoi** : c'est gratuit et pratique. Render lance directement une image publique de Docker Hub, sans la reconstruire, et fournit une adresse de déclenchement (*deploy hook*) que le pipeline peut appeler. AWS et Azure demandent une carte bancaire et une configuration bien plus lourde (droits d'accès, réseau, services à assembler).
+
+**Ce que ça coûte** : en offre gratuite, le site s'endort après 15 minutes sans visite, et le premier visiteur attend son réveil. Les données écrites en production ne durent pas (décision « Données écrites en production »).
+
+**Le déploiement automatique** : l'énoncé demande, avec Render, de *« désactiver le déploiement automatique à chaque commit »*. Un service Render construit à partir d'une image ne se redéploie jamais tout seul : *« Image-backed services do not automatically redeploy whenever a new image is associated with their assigned tag »* ([documentation Render](https://render.com/docs/deploying-an-image)). Seul mon pipeline déclenche le déploiement, par le *deploy hook*, et seulement depuis `master`.
+
+## 2026-10-26 — Noms des secrets du pipeline
+
+**La question** : comment nommer les secrets que le pipeline lit dans les réglages de GitHub ?
+
+**Mon choix** : `DOCKERHUB_TOKEN` pour le jeton Docker Hub, `RENDER_DEPLOY_HOOK` pour l'adresse de déclenchement de Render.
+
+**Pourquoi** : `DOCKERHUB_TOKEN` est le nom de l'exemple officiel de Docker. `RENDER_DEPLOY_HOOK` suit le même modèle, par cohérence avec le premier : le service, puis ce que c'est. Ni le nom du projet ni « CI/CD » : un secret rangé dans les réglages *Actions* de ce dépôt sert forcément à ce pipeline.
+
+**Ce que ça coûte** : un secret GitHub ne se renomme pas. Mon premier nom contenait une erreur (`DOCKERHUB_TOKEN_CICL_OC_LETTINGS`) ; pour le corriger, il a fallu régénérer le jeton sur Docker Hub, créer un nouveau secret et supprimer l'ancien.
+
+## 2026-10-26 — Le travail `deploy` attend-il la fin du déploiement ?
+
+**La question** : l'adresse de déclenchement de Render répond tout de suite, puis Render déploie de son côté. Le travail `deploy` est donc vert avant que le site soit à jour. Faut-il qu'il attende la fin ?
+
+**Les options envisagées** :
+- (a) s'arrêter au déclenchement, et suivre la fin du déploiement dans l'onglet *Events* de Render ;
+- (b) interroger Render jusqu'à « réussi » ou « échoué », avec un script et une clé d'API Render.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est clairement plus simple. Et la clé d'API de (b) est trop puissante pour ce qu'elle apporte : d'après la [documentation de Render](https://api-docs.render.com/reference/authentication), *« An API key provides access to all workspaces you belong to »*, c'est-à-dire à tout le compte. C'est le contraire du moindre privilège choisi pour Docker Hub.
+
+**Ce que ça coûte** : si le déploiement échoue chez Render, le pipeline reste vert. Il faut regarder Render pour savoir si le site est vraiment à jour, y compris pendant la démo.

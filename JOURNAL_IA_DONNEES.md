@@ -335,6 +335,23 @@ celui d'un CTO ». J'ai changé d'avis : je change le mot de passe, pour la séc
 conformer à l'OWASP (A05:2021, comptes par défaut jamais changés). Ce qui restait juste dans mon
 objection, l'accès du successeur, est maintenant écrit dans le README.
 
+**Problèmes rencontrés à la création du service Render :**
+- J'ai d'abord gardé le nom proposé par Render, celui de l'image avec son label
+  (`oc_lettings:d05ce53`). Or le nom du service ne change plus, alors que l'image change à chaque
+  déploiement. Je l'ai changé pour `oc_lettings` avant le premier déploiement.
+- Une adresse web ne peut pas contenir de `_` : Render en a fait `oc-lettings`, et comme le nom
+  était déjà pris, il a ajouté un suffixe, ce qui donne `oc-lettings-rmfb.onrender.com`. Django
+  ne sait même pas lire une adresse avec un `_` (vérifié par l'IA dans mon `venv`).
+- Toutes les pages répondaient `400 Bad Request` : j'avais mis `https://` dans `ALLOWED_HOSTS`.
+  Ce réglage attend un nom de domaine seul. Corrigé, le site répond.
+
+**Prédiction fausse de l'IA :** elle annonçait un refus à la connexion admin (*CSRF verification
+failed. Origin checking failed*), parce que derrière un hébergeur, Django croit souvent que le
+visiteur est en HTTP alors qu'il est en HTTPS. Elle l'a testé avec un faux identifiant : un
+formulaire envoyé depuis `https://…` est accepté, le même depuis `http://…` est refusé (403).
+Django sait donc que le visiteur est en HTTPS. Elle a reconnu son erreur ; la cause exacte
+(probablement un proxy local auquel gunicorn fait confiance) n'est pas prouvée.
+
 ---
 
 ## Notions apprises en cours de route
