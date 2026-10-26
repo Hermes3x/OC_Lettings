@@ -48,6 +48,8 @@ Le site lit ses secrets dans un fichier `.env`, à la racine du projet. Ce fichi
 |---|---|---|
 | `SECRET_KEY` | oui | clé qui signe les sessions et les cookies. Sans elle, le site refuse de démarrer |
 | `SENTRY_DSN` | non | adresse du projet Sentry. Vide, le suivi des erreurs est désactivé |
+| `DEBUG` | non | `True` en développement. Absente, elle vaut `False` |
+| `ALLOWED_HOSTS` | non | noms de domaine acceptés, séparés par des virgules. Par défaut : `localhost,127.0.0.1` |
 
 Chaque environnement (poste de développement, production) doit avoir **sa propre** clé.
 
@@ -99,3 +101,98 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
 - Pour copier le modèle de variables d'environnement, `Copy-Item .env.example .env`
+
+## Déploiement
+
+### Vue d'ensemble
+
+Le déploiement est automatisé par un pipeline GitHub Actions (`.github/workflows/ci-cd.yml`),
+en trois travaux qui s'enchaînent :
+
+| Travail | Quand | Rôle |
+|---|---|---|
+| `test` | chaque push, sur toutes les branches, et chaque pull request | `flake8`, `collectstatic`, tests, couverture d'au moins 80 % |
+| `build` | push sur `master`, si `test` a réussi | construit l'image Docker et la pousse sur Docker Hub, avec pour label les 7 premiers caractères du hash du commit |
+| `deploy` | push sur `master`, si `build` a réussi | demande à Render de lancer cette image |
+
+Une modification fusionnée dans `master` est en ligne quelques minutes plus tard, sans action
+manuelle. Sur toute autre branche, seuls les tests tournent.
+
+- Site en production : https://oc-lettings-rmfb.onrender.com
+- Images : https://hub.docker.com/r/zjon/oc_lettings
+- Exécutions du pipeline : https://github.com/Hermes3x/OC_Lettings/actions
+
+### Configuration requise
+
+- Des comptes GitHub, Docker Hub et Render (offre gratuite). Sentry est facultatif.
+- Deux secrets dans le dépôt GitHub (*Settings > Secrets and variables > Actions*) :
+
+| Secret | Contenu |
+|---|---|
+| `DOCKERHUB_TOKEN` | jeton d'accès personnel Docker Hub, droits « Repo Read & Write » |
+| `RENDER_DEPLOY_HOOK` | adresse de déclenchement du service Render (*Settings > Deploy Hook*) |
+
+- Quatre variables d'environnement dans le service Render (*Environment*) :
+
+| Variable | Valeur |
+|---|---|
+| `SECRET_KEY` | une clé propre à la production, différente de celle des postes de développement |
+| `ALLOWED_HOSTS` | le nom de domaine du site, **sans** `https://` : `oc-lettings-rmfb.onrender.com` |
+| `PORT` | `8000`, le port sur lequel gunicorn écoute dans l'image |
+| `SENTRY_DSN` | facultatif : l'adresse du projet Sentry |
+
+`DEBUG` n'est pas définie en production : elle vaut donc `False`.
+
+### Étapes à suivre
+
+#### Déployer une modification
+
+1. Créer une branche, modifier, pousser : le travail `test` vérifie la branche.
+2. Ouvrir une pull request vers `master` : `test` vérifie aussi le résultat de la fusion.
+3. Fusionner : `test`, `build` et `deploy` s'enchaînent (onglet *Actions* du dépôt).
+4. Sur Render, onglet *Events*, attendre *Deploy live*. Le travail `deploy` déclenche le
+   déploiement mais n'attend pas sa fin : un pipeline vert ne garantit pas que Render a réussi.
+
+#### Lancer l'image en local, en une commande
+
+```
+docker run --rm -p 8000:8000 -e SECRET_KEY=une-cle-locale zjon/oc_lettings:<label>
+```
+
+`<label>` est le label le plus récent sur Docker Hub (le hash court du dernier commit de
+`master`). Docker télécharge l'image si elle n'est pas sur la machine, puis la lance. Le site
+répond sur `http://localhost:8000`.
+
+#### Mettre en place le déploiement depuis zéro
+
+1. **Docker Hub** : *Account settings > Personal access tokens > Generate new token*, droits
+   « Repo Read & Write ». L'enregistrer comme secret GitHub `DOCKERHUB_TOKEN`. Avec un autre
+   compte Docker Hub, remplacer `zjon` dans `ci-cd.yml`.
+2. **Première image** : fusionner dans `master` (le travail `deploy` échouera tant que l'étape 4
+   n'est pas faite), ou construire et pousser l'image à la main avec `docker build` et
+   `docker push`.
+3. **Render** : *New > Web Service > Existing Image*, adresse `docker.io/zjon/oc_lettings:<label>`,
+   offre *Free*, puis les quatre variables d'environnement ci-dessus. Reporter dans
+   `ALLOWED_HOSTS` l'adresse que Render attribue au service.
+4. **Render** : *Settings > Deploy Hook*, copier l'adresse et l'enregistrer comme secret GitHub
+   `RENDER_DEPLOY_HOOK`.
+
+Render ne redéploie jamais un service construit à partir d'une image de lui-même : seul le
+pipeline déclenche un déploiement.
+
+#### Renouveler un secret
+
+- **Jeton Docker Hub** : il expire (le jeton actuel est valable 30 jours, jusqu'au 25 novembre
+  2026). Symptôme : `build` échoue à la connexion (`unauthorized`). Générer un nouveau jeton,
+  remplacer la valeur du secret `DOCKERHUB_TOKEN` (*Update secret*), puis supprimer l'ancien
+  jeton sur Docker Hub.
+- **Adresse de déclenchement Render** : si elle a fuité, *Settings > Deploy Hook > Regenerate
+  Hook*, puis mettre à jour le secret `RENDER_DEPLOY_HOOK`.
+
+#### Limites à connaître
+
+- En offre gratuite, le service s'endort après 15 minutes sans visite. La visite suivante le
+  réveille, ce qui peut prendre jusqu'à une minute.
+- La base SQLite fait partie de l'image : ce qui est écrit en production (par exemple dans
+  l'admin) est perdu à chaque redéploiement, redémarrage ou mise en veille.
+- Admin de production : compte `admin`, mot de passe transmis par le responsable du projet.
