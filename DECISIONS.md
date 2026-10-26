@@ -234,6 +234,8 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 
 **Ce que ça coûte** : le pipeline dépend de GitHub. Le passer un jour sur un autre outil demanderait de réécrire son fichier de configuration.
 
+**Source** : l'énoncé nomme les deux outils : « Lisez la documentation correspondant à votre plateforme Git (GitHub Actions, GitLab CI). Si vous utilisez GitHub, vous pouvez réutiliser des Actions préexistantes pour construire votre pipeline. » Le cours OpenClassrooms sur l'intégration continue utilise GitLab CI. Les notions sont les mêmes (travaux enchaînés, déclencheurs, machines d'exécution, secrets), seule la syntaxe du fichier change.
+
 ## 2026-10-24 — Servir les fichiers statiques en production
 
 **La question** : avec `DEBUG=False`, Django ne sert plus les fichiers statiques (le CSS, les images, le CSS de l'admin). Le site et l'admin s'afficheraient sans mise en forme, alors que l'énoncé exige que « les fichiers statiques [se chargent] correctement en production ». Qui les sert ?
@@ -326,3 +328,109 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Ce que ça coûte** : une nouvelle application ajoutée plus tard devra être autorisée à la main dans `.dockerignore`. Si on l'oublie, la construction de l'image échoue au moment de `collectstatic`, parce que Django ne trouve pas une application déclarée dans `INSTALLED_APPS`. L'erreur se voit tout de suite.
 
 **Conséquence** : les fichiers `tests.py` se trouvent dans les dossiers d'application autorisés. Ils sont exclus à nouveau, puisqu'ils ne servent pas au site : les tests tournent dans le pipeline, pas dans l'image.
+
+## 2026-10-26 — Données écrites en production
+
+**La question** : la base SQLite est copiée dans l'image. Sur Render, le conteneur repart de l'image à chaque redéploiement, à chaque redémarrage et, en offre gratuite, après 15 minutes sans visite (le service est mis en veille). Tout ce qui est écrit en production est alors perdu : une location ajoutée dans l'admin, un nouvel utilisateur, une session. Faut-il rendre ces données persistantes ?
+
+**Comment la question est venue** : après une connexion à l'admin dans le conteneur, il n'y avait plus besoin de restaurer la base. En cherchant pourquoi, j'ai demandé si on pouvait encore créer des locations ou des utilisateurs.
+
+**Les options envisagées** :
+- (a) accepter la limite et la documenter ;
+- (b) un disque persistant chez Render, avec la base SQLite dessus : payant, l'offre gratuite n'en propose pas ;
+- (c) une base de données hébergée (PostgreSQL) : changement de moteur et migration des données, hors du périmètre d'une refactorisation. En plus, la PostgreSQL gratuite de Render expire au bout de 30 jours.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est gratuit et sans risque pour la démo, et le projet est une refactorisation avec une base SQLite fournie dans le dépôt. Changer la façon de stocker les données dépasse ce périmètre.
+
+**Ce que ça coûte** : en production, tout ajout fait dans l'admin est temporaire, alors que le cahier des charges présente le CTO comme un utilisateur fréquent de l'admin. Le mot de passe admin doit être changé en local, dans le fichier de la base, avant de construire l'image : changé dans l'admin de production, il serait perdu. Pour une vraie mise en service, il faudra passer à (b) ou (c).
+
+**Sources** : documentation de Render, [Persistent Disks](https://render.com/docs/disks) et [Deploy for Free](https://render.com/docs/free).
+
+## 2026-10-26 — Déclenchement du pipeline
+
+**La question** : sur quels événements GitHub Actions lance-t-il le pipeline ? Le cahier des charges impose qu'il se lance à chaque commit, avec les trois travaux sur `master` et seulement les tests sur les autres branches.
+
+**Les options envisagées** :
+- (a) à chaque push, sur toutes les branches ;
+- (b) à chaque push, et en plus à chaque pull request ;
+- (c) push sur `master` et pull requests seulement.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est plus rigoureux. En plus de ma branche, on teste le résultat de la fusion avant de fusionner : pour une pull request, GitHub fabrique un commit de fusion temporaire (ma branche + le `master` actuel) et lance les tests dessus, sans toucher à `master`. Deux changements testés chacun de leur côté peuvent casser une fois réunis, sans conflit git : par exemple une route renommée sur `master` et un template qui utilise l'ancien nom sur ma branche. J'ai écarté (c) parce qu'une branche sans pull request ne serait jamais testée, ce qui contredit « à chaque commit ».
+
+**Ce que ça coûte** : deux exécutions à chaque push sur une branche dont la pull request est ouverte. Elles tournent en parallèle, donc l'attente n'est pas doublée, mais la liste des exécutions est plus chargée. Comme je travaille seul, sur une branche à la fois, `master` bouge rarement pendant que je travaille : cette vérification servira surtout si Dependabot ou un successeur fusionne en parallèle.
+
+## 2026-10-26 — Nom du fichier du pipeline
+
+**La question** : comment nommer le fichier du pipeline ? Le dossier est imposé par GitHub : `.github/workflows/`, sinon GitHub ne lit pas le fichier.
+
+**Les options envisagées** : (a) `ci.yml`, le plus courant, mais il ne nomme que l'intégration continue ; (b) `ci-cd.yml` ; (c) `pipeline.yml`, générique.
+
+**Mon choix** : (b) `ci-cd.yml`.
+
+**Pourquoi** : il dit clairement ce qui est réalisé : l'intégration continue (lint, tests, couverture) et le déploiement continu (image, mise en production). C'est aussi le mot de l'énoncé, « pipeline CI/CD ».
+
+**Ce que ça coûte** : rien de particulier.
+
+## 2026-10-26 — Noms des trois travaux du pipeline
+
+**La question** : comment nommer les trois travaux (jobs) que l'énoncé appelle « compilation et tests », « conteneurisation » et « déploiement » ? Ces noms s'affichent dans l'onglet Actions de GitHub, et `needs:` s'en sert pour enchaîner les travaux.
+
+**Les options envisagées** :
+- (a) `lint-and-test` / `containerize` / `deploy` : chaque nom décrit ce que fait le travail ;
+- (b) `test` / `build` / `deploy` : le trio le plus courant dans les exemples de GitHub ;
+- (c) `build-and-test` / `containerization` / `deployment` : traduction littérale de l'énoncé.
+
+**Mon choix** : (b).
+
+**Pourquoi** : c'est presque conforme à l'énoncé, simple et clair. `build` est le mot de la commande que lance ce travail, `docker build`.
+
+**Ce que ça coûte** : la correspondance avec l'énoncé n'est pas mot pour mot. `test` couvre « compilation et tests », `build` couvre « conteneurisation ». Un lecteur pourrait prendre `build` pour la « compilation » de l'énoncé, qui est en réalité le premier travail.
+
+## 2026-10-26 — Système du runner
+
+**La question** : sur quel système tourne la machine que GitHub prête à chaque exécution du pipeline (ligne `runs-on:`) ?
+
+**Les options envisagées** :
+- (a) `ubuntu-latest` : Linux, dernière version maintenue par GitHub, qui la change sans prévenir ;
+- (b) `ubuntu-24.04` : Linux, version figée ;
+- (c) `windows-latest` : le système de ma machine de développement.
+
+**Mon choix** : (b).
+
+**Pourquoi** : par commodité, au regard de la durée de vie du projet, et parce que je ne veux aucun changement avant la soutenance. Avec `ubuntu-latest`, GitHub pourrait changer de version entre ma dernière répétition et la démo.
+
+**Ce que ça coûte** : la version devra être mise à jour à la main quand GitHub cessera de la fournir. (c) était écartée d'office : la production tourne sous Linux, dans l'image Docker, et les runners Windows de GitHub ne construisent pas d'images Linux.
+
+## 2026-10-26 — Clé secrète pour les tests du pipeline
+
+**La question** : `settings.py` lit `os.environ['SECRET_KEY']` et refuse de démarrer sans elle. La machine de GitHub n'a pas mon `.env`, qui n'est pas versionné. Quelle clé donner aux tests ?
+
+**Les options envisagées** :
+- (a) une valeur bidon écrite en clair dans `ci-cd.yml` ;
+- (b) un secret GitHub, réglé dans les paramètres du dépôt et masqué dans les journaux ;
+- (c) une valeur par défaut dans `settings.py` (`os.environ.get('SECRET_KEY', '...')`).
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est la plus pratique, la plus sûre, et la plus économique en ressources et en temps. La valeur est publique, mais elle ne protège rien : les tests ne signent rien qui serve ailleurs. C'est la même logique que `SECRET_KEY=build-only` dans le Dockerfile. (c) aurait supprimé le « fail fast » choisi à l'étape 3 : sans clé en production, le site démarrerait sans prévenir, avec une clé connue de tous.
+
+**Ce que ça coûte** : un lecteur pressé peut croire à une fuite de secret en voyant `SECRET_KEY` en clair dans un fichier public. Le nom de la valeur et un commentaire doivent dire qu'elle est factice.
+
+## 2026-10-26 — Seuil de couverture dans le pipeline
+
+**La question** : sous quel pourcentage de couverture le pipeline doit-il échouer (`pytest --cov-fail-under=N`) ? Le cahier des charges demande une couverture « > 80 % ». Ma couverture au moment du choix : 87 %. Détail lu dans le code de `coverage` : le total est arrondi à l'unité, puis le pipeline échoue s'il est **inférieur** à N.
+
+**Les options envisagées** :
+- (a) 80, le chiffre de l'énoncé ;
+- (b) 81, qui garantit « strictement au-dessus de 80 » une fois l'arrondi compris (échec sous 80,5 %) ;
+- (c) 85, juste sous mon niveau actuel, pour protéger ce qui est atteint.
+
+**Mon choix** : (a) 80.
+
+**Pourquoi** : on respecte l'énoncé, le cahier des charges.
+
+**Ce que ça coûte** : à la lettre, le pipeline accepte 80 % pile, et même 79,6 % à cause de l'arrondi, alors que l'énoncé dit « > 80 % ». La couverture réelle (87 %) est au-dessus, mais le pipeline, lui, ne garantit que « 80 % arrondi ». (c) a été écartée : avec 2 points de marge, tout code ajouté sans tests aurait pu bloquer le pipeline.

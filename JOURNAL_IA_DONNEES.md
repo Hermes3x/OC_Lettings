@@ -285,6 +285,22 @@ sécurisée » (décision 20). L'IA a réécrit le `.dockerignore` dans ce sens.
 
 ---
 
+## 13. Pipeline CI/CD : le job `test`
+
+| | |
+|---|---|
+| **Demandé** | Écrire le pipeline GitHub Actions pas à pas : me présenter les options **avant** chaque choix, puis m'expliquer chaque ligne |
+| **Produit** | `.github/workflows/ci-cd.yml` : déclencheurs `push` + `pull_request`, job `test` sur `ubuntu-24.04` (copie du dépôt, Python 3.14, `pip install`, `flake8`, `pytest --cov --cov-fail-under=80` avec une clé factice). Les options de six décisions (22 à 27). Les notions : pré-fusion d'une pull request, `uses` / `with` / `run`, arrondi du seuil de couverture |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** l'IA a écrit `ci-cd.yml` et rédigé les entrées 22 à 27 de `DECISIONS.md`. J'ai
+pris les six décisions : déclencheurs, nom du fichier, noms des travaux, système du runner, clé
+des tests, seuil de couverture. J'ai reformulé le fichier avant le premier push. L'IA a lancé
+flake8 et pytest en local avec les commandes du pipeline avant ce push.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
@@ -293,7 +309,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour · WSGI = la « prise » standard entre un serveur et une application Python · image (le modèle figé) ≠ conteneur (l'image en marche) · couches et cache : le cache se casse à la première étape dont une entrée change · `RUN` à la construction, `CMD` à chaque lancement · `.dockerignore` · `VARIABLE=valeur commande` (une seule commande) ≠ `ENV` (gravé dans l'image) · `root` (le système) ≠ l'admin Django (une page du site) · `0.0.0.0` = accepter les connexions venues de l'extérieur · `docker run -p port_machine:port_conteneur`.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour · WSGI = la « prise » standard entre un serveur et une application Python · image (le modèle figé) ≠ conteneur (l'image en marche) · couches et cache : le cache se casse à la première étape dont une entrée change · `RUN` à la construction, `CMD` à chaque lancement · `.dockerignore` · `VARIABLE=valeur commande` (une seule commande) ≠ `ENV` (gravé dans l'image) · `root` (le système) ≠ l'admin Django (une page du site) · `0.0.0.0` = accepter les connexions venues de l'extérieur · `docker run -p port_machine:port_conteneur` · un commit reste sur ma machine, c'est le push qui déclenche le pipeline · pull request = test du résultat de la fusion **avant** de fusionner · `uses` (l'action d'un autre) / `with` (ses réglages) / `run` (ma commande) · `--cov-fail-under` arrondit avant de comparer.
 
 ---
 
@@ -306,3 +322,7 @@ une partition figée à un instant déterminé » · une migration SQLite s'exé
   (comptages avant / après, captures de référence). Voir `DECISIONS.md`, « Plan du projet ».
 - **Fichiers statiques servis par WhiteNoise**, et non par un serveur web dédié : suffisant pour la
   taille du site, à revoir si le trafic grossit (voir `DECISIONS.md`, 2026-10-24).
+- **Les données écrites en production ne durent pas** : la base SQLite est dans l'image, et Render
+  repart de l'image à chaque redéploiement, redémarrage ou mise en veille. Choix assumé pour
+  rester dans le périmètre de la refactorisation (voir `DECISIONS.md`, 2026-10-26). C'est moi qui ai
+  soulevé la question ; l'IA a vérifié le comportement de Render dans sa documentation.

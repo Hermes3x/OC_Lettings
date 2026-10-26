@@ -1,0 +1,24 @@
+# Pipeline CI/CD: lint, tests and coverage on every branch; Docker image and deployment on master only.
+name: CI/CD
+
+# Every push, on any branch, plus every pull request (tests the merge result before merging).
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Compilation and tests, on every branch.
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      # The runner starts empty: copy the repository onto it.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - run: pip install -r requirements.txt
+      - run: flake8
+      # Fails below 80 % coverage. The key is fake on purpose: the tests sign nothing that matters.
+      - run: pytest --cov --cov-fail-under=80
+        env:
+          SECRET_KEY: fake-key-for-ci-tests
