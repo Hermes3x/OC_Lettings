@@ -37,7 +37,7 @@ jobs:
       # The token goes through standard input, never on the command line.
       - run: echo "$DOCKERHUB_TOKEN" | docker login -u zjon --password-stdin
         env:
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN_CICL_OC_LETTINGS}}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN}}
       # Label = short commit hash, the same 7 characters as git log --oneline.
       - run: docker build -t zjon/oc_lettings:${GITHUB_SHA::7} .
       - run: docker push zjon/oc_lettings:${GITHUB_SHA::7}
