@@ -29,8 +29,7 @@ jobs:
   # Containerization, on master only: build the image and push it to Docker Hub.
   build:
     needs: test
-    # TEMPORARY: step-4-cicd allowed to test the job before merging. Remove before the merge.
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/step-4-cicd')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
