@@ -377,6 +377,33 @@ notre fichier : la commande de son journal contient `-W --keep-going` (notre `fa
 et `-D language=fr` (la langue choisie pour le projet). Première construction réussie sur
 `9bceda5`, sans warning, avec la référence du code (modèles, vues) générée en ligne.
 
+**Mise à jour automatique vérifiée (exigence de l'énoncé) :** PR #9 (lien de la doc dans le
+README). Read the Docs a construit la pull request elle-même et a ajouté son propre contrôle
+(`docs/readthedocs.org:oc-lettings-rmfb`) à côté du job `test` : il a fallu attendre les deux.
+Après la fusion, une construction de `latest` est partie seule sur le commit de fusion
+`555ddef`, une minute plus tard, sans aucune action de ma part.
+
+---
+
+## 16. Remarques du mentor sur le pipeline
+
+| | |
+|---|---|
+| **Demandé** | Présenter les options pour les quatre remarques du mentor (nom du job `build`, séparation qualité / tests, compte `zjon` écrit en dur, captures dans le guide), puis modifier le pipeline, le README et la documentation |
+| **Produit** | `build` renommé `containerize` ; étapes du job `test` nommées (« Quality (flake8) », « Tests and coverage »…) ; `zjon` remplacé par la variable GitHub `DOCKERHUB_USERNAME` dans les quatre commandes ; README et `deploiement.rst` mis à jour. Commandes simulées avec des valeurs d'exemple : même résultat qu'avant (`zjon/oc_lettings:<hash>`) |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Arbitrage avec le mentor :** il proposait deux jobs, `quality` et `test`. Je ne l'ai suivi
+qu'à moitié : l'énoncé demande trois jobs, donc la séparation se fait dans l'affichage (une
+étape nommée par vérification), pas dans la structure. Pour `build`, j'avais su expliquer le
+nom en séance, mais je l'ai changé quand même : si mon mentor a buté dessus, l'évaluateur
+peut buter aussi. Les captures d'écran du guide sont mises de côté : je les garde comme
+modification possible pendant la démo.
+
+**Qui a écrit quoi :** les remarques viennent du mentor, les choix (décisions 45 à 47) sont les
+miens. L'IA a présenté les options et modifié les fichiers.
+
 ---
 
 ## Notions apprises en cours de route

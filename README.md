@@ -112,8 +112,8 @@ en trois travaux qui s'enchaînent :
 | Travail | Quand | Rôle |
 |---|---|---|
 | `test` | chaque push, sur toutes les branches, et chaque pull request | `flake8`, `collectstatic`, tests, couverture d'au moins 80 % |
-| `build` | push sur `master`, si `test` a réussi | construit l'image Docker et la pousse sur Docker Hub, avec pour label les 7 premiers caractères du hash du commit |
-| `deploy` | push sur `master`, si `build` a réussi | demande à Render de lancer cette image |
+| `containerize` | push sur `master`, si `test` a réussi | construit l'image Docker et la pousse sur Docker Hub, avec pour label les 7 premiers caractères du hash du commit |
+| `deploy` | push sur `master`, si `containerize` a réussi | demande à Render de lancer cette image |
 
 Une modification fusionnée dans `master` est en ligne quelques minutes plus tard, sans action
 manuelle. Sur toute autre branche, seuls les tests tournent.
@@ -132,6 +132,10 @@ manuelle. Sur toute autre branche, seuls les tests tournent.
 |---|---|
 | `DOCKERHUB_TOKEN` | jeton d'accès personnel Docker Hub, droits « Repo Read & Write » |
 | `RENDER_DEPLOY_HOOK` | adresse de déclenchement du service Render (*Settings > Deploy Hook*) |
+
+- Une variable dans le dépôt GitHub (même page, onglet *Variables*) : `DOCKERHUB_USERNAME`, le nom
+  du compte Docker Hub (`zjon`). Ce n'est pas un secret : il figure dans l'adresse publique des
+  images.
 
 - Quatre variables d'environnement dans le service Render (*Environment*) :
 
@@ -157,7 +161,7 @@ manuelle. Sur toute autre branche, seuls les tests tournent.
    ```
 2. Ouvrir une pull request vers `master`, sur GitHub (*Pull requests > New pull request*,
    *base* : `master`) : `test` vérifie aussi le résultat de la fusion.
-3. Fusionner : `test`, `build` et `deploy` s'enchaînent (onglet *Actions* du dépôt).
+3. Fusionner : `test`, `containerize` et `deploy` s'enchaînent (onglet *Actions* du dépôt).
 4. Sur Render, onglet *Events*, attendre *Deploy live*. Le travail `deploy` déclenche le
    déploiement mais n'attend pas sa fin : un pipeline vert ne garantit pas que Render a réussi.
 
@@ -174,8 +178,8 @@ répond sur `http://localhost:8000`.
 #### Mettre en place le déploiement depuis zéro
 
 1. **Docker Hub** : *Account settings > Personal access tokens > Generate new token*, droits
-   « Repo Read & Write ». L'enregistrer comme secret GitHub `DOCKERHUB_TOKEN`. Avec un autre
-   compte Docker Hub, remplacer `zjon` dans `ci-cd.yml`.
+   « Repo Read & Write ». L'enregistrer comme secret GitHub `DOCKERHUB_TOKEN`, et le nom du
+   compte comme variable GitHub `DOCKERHUB_USERNAME`.
 2. **Première image** : fusionner dans `master`, ou construire et pousser l'image à la main avec
    `docker build` et `docker push`. Le travail `deploy` échouera tant que le pipeline n'est pas
    complètement configuré : il lui manque l'adresse de déclenchement Render, enregistrée à la
@@ -196,7 +200,7 @@ pipeline déclenche un déploiement.
 #### Renouveler un secret
 
 - **Jeton Docker Hub** : il expire (le jeton actuel est valable 30 jours, jusqu'au 25 novembre
-  2026). Symptôme : `build` échoue à la connexion (`unauthorized`). Sur Docker Hub, générer un
+  2026). Symptôme : `containerize` échoue à la connexion (`unauthorized`). Sur Docker Hub, générer un
   nouveau jeton. Sur GitHub, remplacer la valeur du secret `DOCKERHUB_TOKEN` (*Settings >
   Secrets and variables > Actions*, *Update secret*). Sur Docker Hub, supprimer l'ancien jeton.
 - **Adresse de déclenchement Render** : si elle a fuité. Sur Render, dans le service :

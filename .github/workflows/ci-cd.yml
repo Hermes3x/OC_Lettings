@@ -15,38 +15,49 @@ jobs:
       SECRET_KEY: fake-key-for-ci-tests
     steps:
       # The runner starts empty: copy the repository onto it.
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - name: Get the code
+        uses: actions/checkout@v7
+      - name: Install Python
+        uses: actions/setup-python@v7
         with:
           python-version: '3.14'
-      - run: pip install -r requirements.txt
-      - run: flake8
+      - name: Install the dependencies
+        run: pip install -r requirements.txt
+      - name: Quality (flake8)
+        run: flake8
       # Same conditions as production: the Dockerfile also collects the static files.
-      - run: python manage.py collectstatic --noinput
+      - name: Collect the static files
+        run: python manage.py collectstatic --noinput
       # Fails below 80 % coverage.
-      - run: pytest --cov --cov-fail-under=80
+      - name: Tests and coverage
+        run: pytest --cov --cov-fail-under=80
 
   # Containerization, on master only: build the image and push it to Docker Hub.
-  build:
+  containerize:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
+    # The Docker Hub account is a repository variable (not a secret: it is public, in the image name).
+    env:
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
     steps:
       - uses: actions/checkout@v7
       # The token goes through standard input, never on the command line.
-      - run: echo "$DOCKERHUB_TOKEN" | docker login -u zjon --password-stdin
+      - run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       # Label = short commit hash, the same 7 characters as git log --oneline.
-      - run: docker build -t zjon/oc_lettings:${GITHUB_SHA::7} .
-      - run: docker push zjon/oc_lettings:${GITHUB_SHA::7}
+      - run: docker build -t "$DOCKERHUB_USERNAME/oc_lettings:${GITHUB_SHA::7}" .
+      - run: docker push "$DOCKERHUB_USERNAME/oc_lettings:${GITHUB_SHA::7}"
 
-  # Deployment: ask Render to run the image that was just pushed. Skipped whenever build is skipped.
+  # Deployment: ask Render to run the image that was just pushed. Skipped whenever containerize is skipped.
   deploy:
-    needs: build
+    needs: containerize
     runs-on: ubuntu-24.04
+    env:
+      DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
     steps:
       # The hook URL is a secret: anyone who has it can redeploy the site.
-      - run: curl -fsS --get --data-urlencode "imgURL=docker.io/zjon/oc_lettings:${GITHUB_SHA::7}" "$RENDER_DEPLOY_HOOK"
+      - run: curl -fsS --get --data-urlencode "imgURL=docker.io/$DOCKERHUB_USERNAME/oc_lettings:${GITHUB_SHA::7}" "$RENDER_DEPLOY_HOOK"
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}

@@ -17,12 +17,12 @@ Le déploiement est automatisé par un pipeline GitHub Actions
    * - ``test``
      - chaque push, sur toutes les branches, et chaque *pull request*
      - ``flake8``, ``collectstatic``, tests, couverture d'au moins 80 %
-   * - ``build``
+   * - ``containerize``
      - push sur ``master``, si ``test`` a réussi
      - construit l'image Docker et la pousse sur Docker Hub, avec pour label les 7 premiers
        caractères du hash du commit
    * - ``deploy``
-     - push sur ``master``, si ``build`` a réussi
+     - push sur ``master``, si ``containerize`` a réussi
      - demande à Render de lancer cette image
 
 Une modification fusionnée dans ``master`` est en ligne quelques minutes plus tard, sans action
@@ -46,6 +46,10 @@ Deux secrets dans le dépôt GitHub (*Settings > Secrets and variables > Actions
      - jeton d'accès personnel Docker Hub, droits « Repo Read & Write »
    * - ``RENDER_DEPLOY_HOOK``
      - adresse de déclenchement du service Render (*Settings > Deploy Hook*)
+
+Une variable dans le dépôt GitHub (même page, onglet *Variables*) : ``DOCKERHUB_USERNAME``, le
+nom du compte Docker Hub (``zjon``). Ce n'est pas un secret : il figure dans l'adresse publique
+des images.
 
 Quatre variables d'environnement dans le service Render (*Environment*) :
 
@@ -80,7 +84,7 @@ Déployer une modification
 
 #. Ouvrir une *pull request* vers ``master``, sur GitHub (*Pull requests > New pull request*,
    *base* : ``master``) : ``test`` vérifie aussi le résultat de la fusion.
-#. Fusionner : ``test``, ``build`` et ``deploy`` s'enchaînent (onglet *Actions* du dépôt).
+#. Fusionner : ``test``, ``containerize`` et ``deploy`` s'enchaînent (onglet *Actions* du dépôt).
 #. Sur Render, onglet *Events*, attendre *Deploy live*. Le travail ``deploy`` déclenche le
    déploiement mais n'attend pas sa fin : un pipeline vert ne garantit pas que Render a réussi.
 
@@ -91,8 +95,8 @@ Mettre en place le déploiement depuis zéro
 ------------------------------------------
 
 #. **Docker Hub** : *Account settings > Personal access tokens > Generate new token*, droits
-   « Repo Read & Write ». L'enregistrer comme secret GitHub ``DOCKERHUB_TOKEN``. Avec un autre
-   compte Docker Hub, remplacer ``zjon`` dans ``ci-cd.yml``.
+   « Repo Read & Write ». L'enregistrer comme secret GitHub ``DOCKERHUB_TOKEN``, et le nom du
+   compte comme variable GitHub ``DOCKERHUB_USERNAME``.
 #. **Première image** : fusionner dans ``master``, ou construire et pousser l'image à la main
    avec ``docker build`` et ``docker push``. Le travail ``deploy`` échouera tant que le pipeline
    n'est pas complètement configuré : il lui manque l'adresse de déclenchement Render,
@@ -113,7 +117,7 @@ Revenir à une version précédente
 
 Renouveler le jeton Docker Hub
    Il expire : le jeton actuel est valable 30 jours, jusqu'au 25 novembre 2026. Symptôme : le
-   travail ``build`` échoue à la connexion (``unauthorized``). Sur Docker Hub, générer un
+   travail ``containerize`` échoue à la connexion (``unauthorized``). Sur Docker Hub, générer un
    nouveau jeton. Sur GitHub, remplacer la valeur du secret ``DOCKERHUB_TOKEN``
    (*Settings > Secrets and variables > Actions*, *Update secret*). Sur Docker Hub, supprimer
    l'ancien jeton.
