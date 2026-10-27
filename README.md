@@ -121,6 +121,7 @@ manuelle. Sur toute autre branche, seuls les tests tournent.
 - Site en production : https://oc-lettings-rmfb.onrender.com
 - Images : https://hub.docker.com/r/zjon/oc_lettings
 - Exécutions du pipeline : https://github.com/Hermes3x/OC_Lettings/actions
+- Documentation : https://oc-lettings-rmfb.readthedocs.io/fr/latest/
 
 ### Configuration requise
 
@@ -184,6 +185,10 @@ répond sur `http://localhost:8000`.
    `ALLOWED_HOSTS` l'adresse que Render attribue au service.
 4. **Render** : *Settings > Deploy Hook*, copier l'adresse et l'enregistrer comme secret GitHub
    `RENDER_DEPLOY_HOOK`.
+5. **Read the Docs** : *Add project*, choisir le dépôt, langue *French*, branche `master`. Le
+   fichier `.readthedocs.yaml` du dépôt fait le reste. La documentation est alors en ligne à
+   l'adresse `https://<nom-du-projet>.readthedocs.io/fr/latest/`, et reconstruite à chaque
+   fusion dans `master`.
 
 Render ne redéploie jamais un service construit à partir d'une image de lui-même : seul le
 pipeline déclenche un déploiement.

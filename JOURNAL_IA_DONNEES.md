@@ -370,6 +370,13 @@ l'installation, le démarrage et le déploiement. J'ai reformulé `conf.py` (R5)
 pages. J'ai pris les décisions 41 et 42 (refus au premier warning, fusion avant l'import
 dans Read the Docs). L'IA a écrit `.readthedocs.yaml` ; je l'ai reformulé (R5).
 
+**Problèmes rencontrés à l'import dans Read the Docs :** l'écran d'import ne proposait pas
+`master` comme branche par défaut, et il n'a pas trouvé `.readthedocs.yaml` : il affichait un
+exemple de fichier, et j'ai confirmé « This file exists ». La construction a pourtant bien lu
+notre fichier : la commande de son journal contient `-W --keep-going` (notre `fail_on_warning`)
+et `-D language=fr` (la langue choisie pour le projet). Première construction réussie sur
+`9bceda5`, sans warning, avec la référence du code (modèles, vues) générée en ligne.
+
 ---
 
 ## Notions apprises en cours de route

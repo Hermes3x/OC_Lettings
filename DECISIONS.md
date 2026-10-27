@@ -656,3 +656,18 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : a priori, aucun souci n'est anticipé, puisque la documentation se construit déjà sans avertissement en local. C'est donc un gain de temps.
 
 **Ce que ça coûte** : si Read the Docs échoue pour une raison qui n'existe que chez lui (version de Python, installation des paquets), la correction passera par une branche et une pull request de plus. Le risque reste limité : la vérification de la mise à jour automatique demande de toute façon une seconde modification après la fusion.
+
+## 2026-10-27 — Nom du projet sur Read the Docs
+
+**La question** : le nom du projet donne l'adresse publique de la documentation, `https://<nom>.readthedocs.io`. Il doit être unique sur tout Read the Docs, et le `_` y est interdit, comme sur Render.
+
+**Les options envisagées** :
+- (a) `oc-lettings`, comme le dépôt et l'image, mais probablement déjà pris par un autre étudiant ;
+- (b) `oc-lettings-zvara`, unique à coup sûr ;
+- (c) `oc-lettings-rmfb`, le même nom que le service Render.
+
+**Mon choix** : (c).
+
+**Pourquoi** : la même adresse que le site en production : `oc-lettings-rmfb.onrender.com` pour le site, `oc-lettings-rmfb.readthedocs.io` pour sa documentation.
+
+**Ce que ça coûte** : `rmfb` est un suffixe tiré au hasard par Render. Il ne veut rien dire, et il faudra l'expliquer si on me le demande. Si le service Render était un jour recréé, son adresse changerait, mais pas celle de la documentation.
