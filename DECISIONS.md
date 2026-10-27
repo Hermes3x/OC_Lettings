@@ -567,3 +567,92 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : c'est clairement plus simple. Et la clé d'API de (b) est trop puissante pour ce qu'elle apporte : d'après la [documentation de Render](https://api-docs.render.com/reference/authentication), *« An API key provides access to all workspaces you belong to »*, c'est-à-dire à tout le compte. C'est le contraire du moindre privilège choisi pour Docker Hub.
 
 **Ce que ça coûte** : si le déploiement échoue chez Render, le pipeline reste vert. Il faut regarder Render pour savoir si le site est vraiment à jour, y compris pendant la démo.
+
+## 2026-10-27 — Langue de la documentation Sphinx
+
+**La question** : la décision sur la langue du README laissait la documentation Sphinx en suspens. En quelle langue l'écrire ?
+
+**Les options envisagées** :
+- (a) en français ;
+- (b) en anglais.
+
+**Mon choix** : (a).
+
+**Pourquoi** : comme le README. La frontière fixée pour le README est « le code en anglais, la documentation en français », et la documentation Sphinx est de la documentation.
+
+**Ce que ça coûte** : la section « interfaces de programmation » est générée à partir des docstrings, qui sont en anglais. La documentation mêle donc du texte en français et une référence technique en anglais. C'est la conséquence de deux décisions, pas un hasard : la référence est extraite du code, et le code est en anglais depuis le premier jour.
+
+## 2026-10-27 — Où déclarer les dépendances de la documentation
+
+**La question** : Sphinx et son thème doivent être installés sur mon poste et sur Read the Docs. Dans quel fichier les déclarer ?
+
+**Les options envisagées** :
+- (a) dans `requirements.txt`, avec un nouveau `pip freeze` ;
+- (b) dans un fichier à part, `docs/requirements.txt`, avec seulement Sphinx et son thème, en versions fixées.
+
+**Mon choix** : (b).
+
+**Pourquoi** : on suit la documentation de Read the Docs, dont l'exemple de configuration utilise `docs/requirements.txt` ([Configuration file](https://docs.readthedocs.com/platform/stable/config-file/v2.html)). C'est le moindre privilège appliqué aux paquets. Et la documentation, c'est de la construction, pas du déploiement : elle n'a rien à faire dans l'image sur le serveur.
+
+**Ce que ça coûte** : deux fichiers de dépendances à tenir à jour, et une commande d'installation de plus sur le poste de développement. Read the Docs installe les deux : `requirements.txt` pour que Django démarre et que Sphinx lise les docstrings, `docs/requirements.txt` pour Sphinx lui-même.
+
+## 2026-10-27 — Thème de la documentation
+
+**La question** : quel habillage donner aux pages générées par Sphinx ?
+
+**Les options envisagées** :
+- (a) Alabaster, le thème par défaut de Sphinx, sans rien à installer ;
+- (b) `sphinx-rtd-theme`, le thème de Read the Docs ;
+- (c) Furo, plus moderne, avec un mode sombre.
+
+**Mon choix** : (b).
+
+**Pourquoi** : par simplicité et par conformisme. C'est le thème de l'hébergeur de la documentation, l'apparence que l'on associe aux documentations Python, et il ne demande aucun réglage.
+
+**Ce que ça coûte** : un paquet de plus à maintenir, et un style classique, sans mode sombre.
+
+## 2026-10-27 — Organisation et noms des pages de la documentation
+
+**La question** : comment ranger les huit sections imposées par le cahier des charges, et comment nommer leurs fichiers ? Les noms apparaissent aussi dans les adresses de la documentation en ligne (`…/installation.html`).
+
+**L'organisation** : un fichier `.rst` par section, listés dans le sommaire de `index.rst`. Chaque section devient une entrée de la barre latérale du thème.
+
+**Les options envisagées pour les noms** :
+- (a) en français, sans accents : `description`, `installation`, `demarrage-rapide`, `technologies`, `base-de-donnees`, `interfaces`, `utilisation`, `deploiement` ;
+- (b) en anglais : `overview`, `installation`, `quickstart`, `technologies`, `database`, `api`, `usage`, `deployment`.
+
+**Mon choix** : (a).
+
+**Pourquoi** : pour la même raison que la langue de la documentation : le développeur qui reprendra le projet est français, donc la documentation est en français, adresses comprises.
+
+**Ce que ça coûte** : les noms de fichiers de la documentation ne suivent pas ceux du code, qui sont en anglais. C'est la frontière « code en anglais, documentation en français » appliquée jusqu'au bout.
+
+**Qui rédige** : l'IA rédige les huit sections, en reprenant le README là où il couvre déjà le sujet (installation, démarrage, déploiement) ; je relis. Même répartition que pour le README.
+
+## 2026-10-27 — Documentation refusée au premier avertissement
+
+**La question** : quand Sphinx signale un problème en construisant la documentation (docstring mal formée, lien cassé, module impossible à importer), Read the Docs doit-il la publier quand même ?
+
+**Les options envisagées** :
+- (a) non : `fail_on_warning: true` dans `.readthedocs.yaml` ; la construction échoue et la version en ligne reste la précédente ;
+- (b) oui : la documentation se met toujours à jour, avertissements compris.
+
+**Mon choix** : (a).
+
+**Pourquoi** : la qualité. Une documentation cassée n'est jamais publiée, comme une image n'est jamais construite si la couverture passe sous 80 % (rapprochement proposé par l'IA, que je reprends). La documentation se construit déjà sans aucun avertissement en local (`sphinx-build -W`) : la règle ne coûte rien aujourd'hui.
+
+**Ce que ça coûte** : une simple faute de mise en forme dans un `.rst` bloque la mise à jour en ligne jusqu'à sa correction. Il faut donc vérifier la construction en local avant de fusionner.
+
+## 2026-10-27 — Ordre de mise en ligne de la documentation
+
+**La question** : Read the Docs construit la branche `master`, qui n'a encore ni `docs/` ni `.readthedocs.yaml`. Faut-il fusionner `step-5-docs` avant d'importer le dépôt dans Read the Docs, ou l'importer d'abord pour tester la branche ?
+
+**Les options envisagées** :
+- (a) fusionner d'abord, importer ensuite : la première construction en ligne se fait sur `master` ;
+- (b) importer d'abord et faire construire `step-5-docs` par Read the Docs avant la fusion, comme le `if:` temporaire de l'étape 4.
+
+**Mon choix** : (a).
+
+**Pourquoi** : a priori, aucun souci n'est anticipé, puisque la documentation se construit déjà sans avertissement en local. C'est donc un gain de temps.
+
+**Ce que ça coûte** : si Read the Docs échoue pour une raison qui n'existe que chez lui (version de Python, installation des paquets), la correction passera par une branche et une pull request de plus. Le risque reste limité : la vérification de la mise à jour automatique demande de toute façon une seconde modification après la fusion.

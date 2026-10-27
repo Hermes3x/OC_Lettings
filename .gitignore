@@ -5,3 +5,4 @@ venv
 htmlcov/
 .env
 staticfiles/
+docs/_build/

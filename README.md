@@ -148,7 +148,14 @@ manuelle. Sur toute autre branche, seuls les tests tournent.
 #### Déployer une modification
 
 1. Créer une branche, modifier, pousser : le travail `test` vérifie la branche.
-2. Ouvrir une pull request vers `master` : `test` vérifie aussi le résultat de la fusion.
+   ```
+   git switch -c nom-de-la-branche
+   git add <fichiers modifiés>
+   git commit -m "Describe the change"
+   git push -u origin nom-de-la-branche
+   ```
+2. Ouvrir une pull request vers `master`, sur GitHub (*Pull requests > New pull request*,
+   *base* : `master`) : `test` vérifie aussi le résultat de la fusion.
 3. Fusionner : `test`, `build` et `deploy` s'enchaînent (onglet *Actions* du dépôt).
 4. Sur Render, onglet *Events*, attendre *Deploy live*. Le travail `deploy` déclenche le
    déploiement mais n'attend pas sa fin : un pipeline vert ne garantit pas que Render a réussi.
@@ -168,9 +175,10 @@ répond sur `http://localhost:8000`.
 1. **Docker Hub** : *Account settings > Personal access tokens > Generate new token*, droits
    « Repo Read & Write ». L'enregistrer comme secret GitHub `DOCKERHUB_TOKEN`. Avec un autre
    compte Docker Hub, remplacer `zjon` dans `ci-cd.yml`.
-2. **Première image** : fusionner dans `master` (le travail `deploy` échouera tant que l'étape 4
-   n'est pas faite), ou construire et pousser l'image à la main avec `docker build` et
-   `docker push`.
+2. **Première image** : fusionner dans `master`, ou construire et pousser l'image à la main avec
+   `docker build` et `docker push`. Le travail `deploy` échouera tant que le pipeline n'est pas
+   complètement configuré : il lui manque l'adresse de déclenchement Render, enregistrée à la
+   dernière étape ci-dessous.
 3. **Render** : *New > Web Service > Existing Image*, adresse `docker.io/zjon/oc_lettings:<label>`,
    offre *Free*, puis les quatre variables d'environnement ci-dessus. Reporter dans
    `ALLOWED_HOSTS` l'adresse que Render attribue au service.
@@ -183,11 +191,12 @@ pipeline déclenche un déploiement.
 #### Renouveler un secret
 
 - **Jeton Docker Hub** : il expire (le jeton actuel est valable 30 jours, jusqu'au 25 novembre
-  2026). Symptôme : `build` échoue à la connexion (`unauthorized`). Générer un nouveau jeton,
-  remplacer la valeur du secret `DOCKERHUB_TOKEN` (*Update secret*), puis supprimer l'ancien
-  jeton sur Docker Hub.
-- **Adresse de déclenchement Render** : si elle a fuité, *Settings > Deploy Hook > Regenerate
-  Hook*, puis mettre à jour le secret `RENDER_DEPLOY_HOOK`.
+  2026). Symptôme : `build` échoue à la connexion (`unauthorized`). Sur Docker Hub, générer un
+  nouveau jeton. Sur GitHub, remplacer la valeur du secret `DOCKERHUB_TOKEN` (*Settings >
+  Secrets and variables > Actions*, *Update secret*). Sur Docker Hub, supprimer l'ancien jeton.
+- **Adresse de déclenchement Render** : si elle a fuité. Sur Render, dans le service :
+  *Settings > Deploy Hook > Regenerate Hook*. Sur GitHub, remplacer la valeur du secret
+  `RENDER_DEPLOY_HOOK` (*Settings > Secrets and variables > Actions*, *Update secret*).
 
 #### Limites à connaître
 
