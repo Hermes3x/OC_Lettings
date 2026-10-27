@@ -671,3 +671,65 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : la même adresse que le site en production : `oc-lettings-rmfb.onrender.com` pour le site, `oc-lettings-rmfb.readthedocs.io` pour sa documentation.
 
 **Ce que ça coûte** : `rmfb` est un suffixe tiré au hasard par Render. Il ne veut rien dire, et il faudra l'expliquer si on me le demande. Si le service Render était un jour recréé, son adresse changerait, mais pas celle de la documentation.
+
+## 2026-10-27 — Protection de la branche `master`
+
+**La question** : faut-il empêcher la fusion d'une pull request dont les contrôles sont rouges ?
+
+**Comment j'y suis arrivé** : je pensais que le bouton de fusion grisé était une sécurité suffisante. En vérifiant, `master` n'était pas protégée : sans protection, le bouton grisé reste cliquable. C'est un avertissement, pas un verrou. La production était déjà protégée par le pipeline (`needs` : un `test` rouge sur `master` saute `build` et `deploy`), mais `master` pouvait recevoir du code cassé.
+
+**Les options envisagées** :
+- (a) protéger `master` par une règle GitHub (*ruleset*) : la fusion est impossible tant que les contrôles exigés ne sont pas verts ;
+- (b) ne rien ajouter : compter sur l'avertissement et sur la discipline de celui qui fusionne.
+
+**Mon choix** : (a), sans exception, même pour moi (liste de contournement vide). Contrôle exigé : `test` seul, et non celui de Read the Docs.
+
+**Pourquoi** : je suis jusqu'au-boutiste : on protège. `test` seul, parce que la documentation ne casse rien : une documentation en échec n'est de toute façon jamais publiée (décision 41).
+
+**Ce que ça coûte** : plus aucune correction rapide poussée directement sur `master` : tout passe par une branche et une pull request, même une faute de frappe. Une documentation en échec peut être fusionnée ; elle se verra en rouge sur la pull request et sur Read the Docs.
+
+## 2026-10-27 — Le job `build` devient `containerize`
+
+**La question** : en séance de mentorat, mon mentor a trouvé le nom `build` incohérent. J'ai su l'expliquer : la compilation et les tests sont dans `test`, et `build` construit l'image. Mais il m'a conseillé de le changer pour que ce soit plus clair. Faut-il le renommer ?
+
+**Les options envisagées** :
+- (a) `containerize`, le mot de l'énoncé (« conteneurisation ») ;
+- (b) `docker`, l'outil utilisé ;
+- (c) `image`, ce que le job produit ;
+- (d) garder `build` et le défendre à l'oral.
+
+**Mon choix** : (a). Cette entrée modifie la décision du 2026-10-26 sur les noms des jobs.
+
+**Pourquoi** : la conformité au cahier des charges. Les trois jobs portent maintenant les trois mots de l'énoncé : tests, conteneurisation, déploiement.
+
+**Ce que ça coûte** : le nom est à changer dans le pipeline (`needs: containerize` dans `deploy`), le README et la documentation. Les anciennes exécutions du pipeline affichent encore `build`.
+
+## 2026-10-27 — Qualité et tests : séparés dans l'affichage, pas en deux jobs
+
+**La question** : mon mentor propose de séparer la vérification de la qualité du code (`flake8`) et les tests. Comment ?
+
+**Les options envisagées** :
+- (a) deux jobs, `quality` et `test`, comme le propose le mentor : quatre jobs alors que l'énoncé en demande trois, et la protection de `master` à compléter avec un deuxième contrôle ;
+- (b) garder un seul job `test`, mais donner un nom à chacune de ses étapes : « Quality (flake8) », « Tests and coverage »… La séparation se voit dans l'affichage du pipeline ;
+- (c) ne rien changer.
+
+**Mon choix** : (b).
+
+**Pourquoi** : la conformité au cahier des charges (trois jobs), tout en prenant en compte la remarque du mentor.
+
+**Ce que ça coûte** : si `flake8` échoue, les tests ne tournent pas du tout. Avec deux jobs, on aurait vu les deux résultats à la fois.
+
+## 2026-10-27 — Le compte Docker Hub dans une variable GitHub
+
+**La question** : mon mentor propose de retirer `zjon`, écrit en dur dans le pipeline. Il y apparaissait quatre fois : connexion, construction, envoi, adresse de l'image envoyée à Render.
+
+**Les options envisagées** :
+- (a) une variable GitHub `DOCKERHUB_USERNAME` (*Settings > Secrets and variables > Actions*, onglet *Variables*), comme dans l'exemple de la documentation Docker ;
+- (b) un secret GitHub ;
+- (c) garder `zjon`.
+
+**Mon choix** : (a).
+
+**Pourquoi** : c'est pratique : un successeur change de compte Docker Hub sans toucher au fichier du pipeline. La configuration sort du code. Pas un secret : le nom du compte est public (il est dans l'adresse des images), et GitHub masquerait sa valeur en `***` dans tous les journaux, y compris dans le nom de l'image.
+
+**Ce que ça coûte** : un réglage de plus sur GitHub. Si la variable manque, le job `containerize` échoue à la connexion.
