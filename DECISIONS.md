@@ -628,3 +628,31 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Ce que ça coûte** : les noms de fichiers de la documentation ne suivent pas ceux du code, qui sont en anglais. C'est la frontière « code en anglais, documentation en français » appliquée jusqu'au bout.
 
 **Qui rédige** : l'IA rédige les huit sections, en reprenant le README là où il couvre déjà le sujet (installation, démarrage, déploiement) ; je relis. Même répartition que pour le README.
+
+## 2026-10-27 — Documentation refusée au premier avertissement
+
+**La question** : quand Sphinx signale un problème en construisant la documentation (docstring mal formée, lien cassé, module impossible à importer), Read the Docs doit-il la publier quand même ?
+
+**Les options envisagées** :
+- (a) non : `fail_on_warning: true` dans `.readthedocs.yaml` ; la construction échoue et la version en ligne reste la précédente ;
+- (b) oui : la documentation se met toujours à jour, avertissements compris.
+
+**Mon choix** : (a).
+
+**Pourquoi** : la qualité. Une documentation cassée n'est jamais publiée, comme une image n'est jamais construite si la couverture passe sous 80 % (rapprochement proposé par l'IA, que je reprends). La documentation se construit déjà sans aucun avertissement en local (`sphinx-build -W`) : la règle ne coûte rien aujourd'hui.
+
+**Ce que ça coûte** : une simple faute de mise en forme dans un `.rst` bloque la mise à jour en ligne jusqu'à sa correction. Il faut donc vérifier la construction en local avant de fusionner.
+
+## 2026-10-27 — Ordre de mise en ligne de la documentation
+
+**La question** : Read the Docs construit la branche `master`, qui n'a encore ni `docs/` ni `.readthedocs.yaml`. Faut-il fusionner `step-5-docs` avant d'importer le dépôt dans Read the Docs, ou l'importer d'abord pour tester la branche ?
+
+**Les options envisagées** :
+- (a) fusionner d'abord, importer ensuite : la première construction en ligne se fait sur `master` ;
+- (b) importer d'abord et faire construire `step-5-docs` par Read the Docs avant la fusion, comme le `if:` temporaire de l'étape 4.
+
+**Mon choix** : (a).
+
+**Pourquoi** : a priori, aucun souci n'est anticipé, puisque la documentation se construit déjà sans avertissement en local. C'est donc un gain de temps.
+
+**Ce que ça coûte** : si Read the Docs échoue pour une raison qui n'existe que chez lui (version de Python, installation des paquets), la correction passera par une branche et une pull request de plus. Le risque reste limité : la vérification de la mise à jour automatique demande de toute façon une seconde modification après la fusion.
