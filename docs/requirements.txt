@@ -1,0 +1,22 @@
+# Documentation build only: Sphinx, its theme and their dependencies, at exact versions.
+# The site's own dependencies (Django, needed to read the docstrings) are in ../requirements.txt.
+alabaster==1.0.0
+babel==2.18.0
+charset-normalizer==3.5.2
+docutils==0.22.4
+idna==3.20
+imagesize==2.0.1
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+requests==2.34.2
+roman-numerals==4.1.0
+snowballstemmer==3.1.1
+Sphinx==9.2.0
+sphinx_rtd_theme==3.1.0
+sphinxcontrib-applehelp==2.0.0
+sphinxcontrib-devhelp==2.0.0
+sphinxcontrib-htmlhelp==2.1.0
+sphinxcontrib-jquery==4.1
+sphinxcontrib-jsmath==2.0.0
+sphinxcontrib-qthelp==2.0.0
+sphinxcontrib-serializinghtml==2.0.0

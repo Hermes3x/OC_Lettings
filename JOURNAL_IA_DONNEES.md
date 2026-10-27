@@ -354,6 +354,23 @@ Django sait donc que le visiteur est en HTTPS. Elle a reconnu son erreur ; la ca
 
 ---
 
+## 15. Documentation Sphinx
+
+| | |
+|---|---|
+| **Demandé** | Me présenter les options (langue, dépendances, thème, noms des pages), écrire la configuration de Sphinx, rédiger les huit sections imposées |
+| **Produit** | `docs/requirements.txt` (Sphinx, son thème et leurs 18 dépendances, versions exactes), `docs/conf.py` (Django démarré avec une clé factice, `autodoc` et `napoleon`), `index.rst` et huit pages en français, dont une référence du code générée depuis les docstrings. Construction vérifiée sans aucun warning, avec l'option qui les transforme en erreurs (`-W`) |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Qui a écrit quoi :** j'ai pris les décisions 37 à 40 : langue, fichier de dépendances à part,
+thème, noms des pages. J'ai lancé `sphinx-quickstart`. L'IA a écrit `conf.py`, installé Sphinx,
+fabriqué `docs/requirements.txt` et rédigé les huit pages, en reprenant le README pour
+l'installation, le démarrage et le déploiement. J'ai reformulé `conf.py` (R5) et je relis les
+pages.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
