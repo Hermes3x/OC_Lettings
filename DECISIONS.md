@@ -733,3 +733,18 @@ Exclu d'office : uvicorn, un serveur ASGI pour les applications asynchrones, ce 
 **Pourquoi** : c'est pratique : un successeur change de compte Docker Hub sans toucher au fichier du pipeline. La configuration sort du code. Pas un secret : le nom du compte est public (il est dans l'adresse des images), et GitHub masquerait sa valeur en `***` dans tous les journaux, y compris dans le nom de l'image.
 
 **Ce que ça coûte** : un réglage de plus sur GitHub. Si la variable manque, le job `containerize` échoue à la connexion.
+
+## 2026-10-29 — Réparer l'historique de l'admin : une migration par application
+
+**La question** : dans l'admin, les « Actions récentes » qui concernent les adresses, les locations et les profils ne sont plus cliquables (16 lignes sur 25). Chaque ligne de l'historique pointe vers un type de contenu (`ContentType`), et ces lignes pointent encore vers les anciens modèles de `oc_lettings_site`, supprimés à l'étape 1. L'énoncé demande que l'admin ne change pas de fonctionnalités. Comment les rediriger vers les nouveaux modèles, et où placer cette réparation ?
+
+**Les options envisagées** :
+- (a) une seule migration de données dans `oc_lettings_site`, qui répare les trois modèles d'un coup ;
+- (b) une migration par application : `lettings/0004` répare `Address` et `Letting`, `profiles/0003` répare `Profile` ;
+- (c) ne rien réparer et documenter la limite.
+
+**Mon choix** : (b).
+
+**Pourquoi** : je veux que ce soit modulaire : il est plus cohérent que chaque application s'occupe d'elle-même. C'est la même logique qu'à l'étape 1, où chaque application a copié ses propres données, et que pour l'admin, où chaque application déclare ses modèles dans son `admin.py`.
+
+**Ce que ça coûte** : deux fichiers presque identiques au lieu d'un. Et l'historique appartient à l'admin, qui est plus général que les applications : les deux options se défendaient. Les deux migrations nomment encore `oc_lettings_site`, puisque c'est là que pointent les anciennes lignes. La réparation passe par `RunPython`, pas par `RunSQL` (interdit par l'énoncé), et ne se défait pas (`noop`) : les anciens modèles n'existent plus. La base doit être commitée migrée, puisque le `Dockerfile` ne lance pas `migrate`.
