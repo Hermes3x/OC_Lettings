@@ -26,7 +26,7 @@ def test_home_index_view_response_is_200(client):
     response = client.get(reverse('index'))
     assert response.status_code == 200
     assertTemplateUsed(response, 'index.html')
-    assert 'Welcome to Holiday Homes' in response.content.decode()
+    assert 'Welcome to your BEST Holiday Homes' in response.content.decode()
 
 
 def test_home_url_view_displays_the_404_error_customized_message(client):
