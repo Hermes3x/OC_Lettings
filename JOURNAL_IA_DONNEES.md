@@ -406,6 +406,27 @@ miens. L'IA a présenté les options et modifié les fichiers.
 
 ---
 
+## 17. L'historique de l'admin : rétablir les liens
+
+| | |
+|---|---|
+| **Demandé** | Comprendre pourquoi les « Actions récentes » de l'admin ne sont plus cliquables, puis les réparer. D'abord avec un exemple complet à mettre en place moi-même, puis, une fois l'option (b) choisie, « tu vas tout faire » |
+| **Produit** | Diagnostic : 16 lignes de `django_admin_log` pointent vers les anciens types de contenu `oc_lettings_site.*`, dont les modèles n'existent plus. Une migration d'exemple dans `oc_lettings_site`, testée sur une copie de la base ; puis, après ma décision 48, deux migrations `RunPython` écrites par l'IA (`lettings/0004_fix_admin_history_links`, `profiles/0003_fix_admin_history_links`), appliquées et vérifiées : 16 lignes cassées → 0, 25 lignes d'historique conservées, 6 / 6 / 4 inchangés, aucune session ajoutée, 17 tests verts, flake8 0. Commit `ce5e051`, pipeline vert sur la branche |
+| **Retenu** | _à remplir_ |
+| **Vérifié** | _à remplir_ |
+
+**Effet de bord non anticipé :** j'ai d'abord tapé le code dans ma migration `profiles/0002`, déjà
+appliquée, au lieu d'un nouveau fichier. `pytest` l'a vu en 3 secondes : `CircularDependencyError`,
+9 tests en erreur. La nouvelle `0002` attendait `oc_lettings_site.0003`, qui attend elle-même
+`profiles.0002` : c'est le verrou de l'étape 1. Je n'avais pas poussé. Et même en poussant, le job
+`test` aurait été rouge et la règle sur `master` aurait bloqué la fusion. Leçon : **on ne modifie
+jamais une migration déjà appliquée, on en ajoute une nouvelle.**
+
+**Qui a écrit quoi :** le choix de réparer et le choix de l'option (b) sont les miens. Les deux
+migrations ont été écrites par l'IA, à ma demande, faute de temps à la veille de la soutenance.
+
+---
+
 ## Notions apprises en cours de route
 
 LTS (*Long Term Support*) · le PATH décide quel Python répond à `python` · le PATH est lu au
@@ -414,7 +435,7 @@ transitive · opérateur d'appel `&` de PowerShell · lire une erreur chaînée 
 exception was the direct cause… » : la cause est dans la première) · projet ≠ application Django
 · `makemigrations` écrit le plan, `migrate` l'exécute · migration de données (`RunPython`, aller
 et retour) · `apps.get_model` : « un `import` est une action en direct, `apps.get_model` rejoue
-une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour · WSGI = la « prise » standard entre un serveur et une application Python · image (le modèle figé) ≠ conteneur (l'image en marche) · couches et cache : le cache se casse à la première étape dont une entrée change · `RUN` à la construction, `CMD` à chaque lancement · `.dockerignore` · `VARIABLE=valeur commande` (une seule commande) ≠ `ENV` (gravé dans l'image) · `root` (le système) ≠ l'admin Django (une page du site) · `0.0.0.0` = accepter les connexions venues de l'extérieur · `docker run -p port_machine:port_conteneur` · un commit reste sur ma machine, c'est le push qui déclenche le pipeline · pull request = test du résultat de la fusion **avant** de fusionner · `uses` (l'action d'un autre) / `with` (ses réglages) / `run` (ma commande) · `--cov-fail-under` arrondit avant de comparer.
+une partition figée à un instant déterminé » · une migration SQLite s'exécute d'un seul bloc · le verrou = deux dépendances ajoutées à la main dans la migration de suppression · **MVT : la vue décide, le template affiche** (la *view* de Django = le *controller* de MVC) · `urls.py` = l'aiguillage devant les vues · espace de noms (`app_name`) = le « nom de famille » des routes : `profiles:profile` · sous-dossier des templates (`lettings/templates/lettings/`) · import relatif (`.models`) / absolu (`lettings.models`) · `git mv` · `include` · une page = plusieurs requêtes (le HTML, puis chaque CSS, image, script) · `runserver` ne sert les fichiers statiques qu'avec `DEBUG=True` · la page jaune de `DEBUG=True` expose le code et les réglages · `collectstatic` rassemble les fichiers statiques (admin compris) dans un seul dossier · middleware = une couche que chaque requête traverse, à l'aller et au retour · WSGI = la « prise » standard entre un serveur et une application Python · image (le modèle figé) ≠ conteneur (l'image en marche) · couches et cache : le cache se casse à la première étape dont une entrée change · `RUN` à la construction, `CMD` à chaque lancement · `.dockerignore` · `VARIABLE=valeur commande` (une seule commande) ≠ `ENV` (gravé dans l'image) · `root` (le système) ≠ l'admin Django (une page du site) · `0.0.0.0` = accepter les connexions venues de l'extérieur · `docker run -p port_machine:port_conteneur` · un commit reste sur ma machine, c'est le push qui déclenche le pipeline · pull request = test du résultat de la fusion **avant** de fusionner · `uses` (l'action d'un autre) / `with` (ses réglages) / `run` (ma commande) · `--cov-fail-under` arrondit avant de comparer · on ne modifie jamais une migration déjà appliquée, on en ajoute une · `ContentType` = l'étiquette « application + modèle » vers laquelle pointe chaque ligne de l'historique de l'admin · une fusion = un push sur `master` pour le pipeline.
 
 ---
 
