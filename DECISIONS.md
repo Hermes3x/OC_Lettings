@@ -32,7 +32,7 @@
 - (b) tout en anglais ;
 - (c) le code en anglais, les fichiers de suivi en français.
 
-**Mon choix** : (c). En anglais : le code, les noms, les docstrings, les commentaires et les messages de commit. En français : `DECISIONS.md` et le journal de l'IA.
+**Mon choix** : (c). En anglais : le code, les noms, les docstrings, les commentaires et les messages de commit. En français : `DECISIONS.md`,le journal de l'IA et la documentation.
 
 **Pourquoi** :
 - l'anglais est la langue la plus répandue dans le code ;
@@ -74,6 +74,7 @@ Pour les noms : `chore/upgrade-django` (préfixe selon la nature du travail), `s
 - c'est plus sûr : une fois le pipeline en place, chaque push sur `master` déploie en production. Les autres branches ne lancent que les tests ;
 - c'est ce qui se pratique en entreprise ;
 - les noms de branches suivent les étapes de l'énoncé : mon plan se lit dans l'historique.
+-  c'est ce que j'ai compris du document Site web 2.0 - caractéristiques et améliorations chapitre 4.
 
 **Ce que ça coûte** : quelques commandes git de plus à chaque étape. Pendant la démo, la modification du titre passera par une branche, puis par une fusion dans `master` : deux exécutions du pipeline au lieu d'une.
 
